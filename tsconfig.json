@@ -3,6 +3,7 @@
   "compilerOptions": {
     "allowJs": true,
     "experimentalDecorators": true,
+    "esModuleInterop": true,
     "lib": ["es2017"],
     "target": "es2017",
     "module": "commonjs",
