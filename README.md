@@ -12,11 +12,10 @@ Create `.env` file with:
 // .env
 TWITTER_CONSUMER_KEY=
 TWITTER_CONSUMER_SECRET=
-TWITTER_ACCESS_TOKEN_KEY=
-TWITTER_ACCESS_TOKEN_SECRET=
+TWITTER_BEARER_TOKEN=
 ```
 
-You can get the relevant environment variables through the [Twitter developer dashboard](https://developer.twitter.com/en/portal/dashboard).
+You can get the relevant environment variables through the [Twitter developer dashboard](https://developer.twitter.com/en/portal/dashboard). Note, this repo uses Twitter API v1.1. For that you need "Elevated" access as some of the endpoints in v2 are deprecated.
 
 Install packages using [yarn](https://yarnpkg.com/en/).
 
