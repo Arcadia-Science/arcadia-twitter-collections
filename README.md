@@ -1,6 +1,6 @@
 # arcadia-twitter-collections
 
-This repo implements a periodic job that pulls relevant tweets from the [Twitter API](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/api-reference/get-search-tweets) (based on search params) and adds them to publication specific [Twitter collections](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/curate-a-collection/overview/about_collections). The job runs on [Heroku](https://www.heroku.com/) every minute.
+This repo implements a periodic job that pulls relevant tweets from the [Twitter API](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/api-reference/get-search-tweets) (based on search params) and adds them to publication specific [Twitter collections](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/curate-a-collection/overview/about_collections). The job runs on [Render](https://dashboard.render.com/) every 5 minutes using their [Cron job](https://render.com/docs/cronjobs) service.
 
 The configuration of what collections to create and what search terms to use are managed in a no-code way in [Notion](https://developers.notion.com/docs/getting-started).
 
