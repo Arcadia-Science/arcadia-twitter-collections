@@ -16,17 +16,12 @@ interface RichTextProperty {
 interface CollectionEntryProperties {
   Name: TitleProperty;
   Description: RichTextProperty;
-  Parameters: RichTextProperty;
+  Search: RichTextProperty;
   ID: RichTextProperty;
   URL: RichTextProperty;
 }
 
-type CollectionPropertyKeys =
-  | "Name"
-  | "Description"
-  | "Parameters"
-  | "ID"
-  | "URL";
+type CollectionPropertyKeys = "Name" | "Description" | "Search" | "ID" | "URL";
 
 export interface CollectionEntry {
   object: "page";
@@ -35,15 +30,24 @@ export interface CollectionEntry {
 }
 
 // Helpers to work with Notion's unnecessarily complex "Page" properties
-export const getRichTextProperty = (
+export const getTitleValue = (
   entry: CollectionEntry,
   propertyName: CollectionPropertyKeys
 ) => {
-  return (entry.properties[propertyName] as RichTextProperty).rich_text[0];
+  return (entry.properties[propertyName] as TitleProperty).title[0]
+    .plain_text as string;
+};
+
+export const getRichTextValue = (
+  entry: CollectionEntry,
+  propertyName: CollectionPropertyKeys
+) => {
+  return (entry.properties[propertyName] as RichTextProperty).rich_text[0]
+    .plain_text as string;
 };
 
 export const isCollectionIdEmpty = (entry: CollectionEntry) => {
-  return !getRichTextProperty(entry, "ID");
+  return !entry.properties.ID.rich_text[0];
 };
 
 // Interacting with the Notion API

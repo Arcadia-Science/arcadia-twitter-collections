@@ -7,6 +7,11 @@ interface Tweet {
   full_text: string;
 }
 
+interface SearchResponse {
+  statuses: Tweet[];
+  search_metadata: Record<string, string>;
+}
+
 interface Collection {
   response: Record<"timeline_id", string>;
 }
@@ -28,19 +33,20 @@ export class TwitterAPI {
   }
 
   // Search tweets based on terms
-  async searchTweets(terms: string | string[]): Promise<Tweet> {
+  async searchTweets(terms: string | string[]): Promise<SearchResponse> {
     const query = typeof terms === "string" ? terms : terms.join(" 0R ");
-    return new Promise<Tweet>((resolve, reject) => {
+    return new Promise<SearchResponse>((resolve, reject) => {
       this.client.get(
         "search/tweets",
-        { q: query },
-        (err: Error, tweet: Tweet) => (err ? reject(err) : resolve(tweet))
+        { q: query, count: 100, includeEntities: false, result_type: "recent" },
+        (err: Error, response: SearchResponse) =>
+          err ? reject(err) : resolve(response)
       );
     });
   }
 
   // Create a Twitter collection with a specific name and description
-  // TODO: Enforce character limits
+  // TODO: Enforce character limits (25 chars for name, 160 chars for description)
   async createCollection(name: string, description: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       this.client.post(

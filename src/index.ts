@@ -3,7 +3,8 @@ import { TwitterAPI, COLLECTION_URL_PREFIX } from "./twitter";
 import {
   NotionAPI,
   CollectionEntry,
-  getRichTextProperty,
+  getRichTextValue,
+  getTitleValue,
   isCollectionIdEmpty,
 } from "./notion";
 
@@ -11,13 +12,26 @@ import {
 const twitter = new TwitterAPI();
 const notion = new NotionAPI();
 
-const createCollectionFromEntry = async (entry: CollectionEntry) => {
-  const collectionName = getRichTextProperty(entry, "Name")
-    .plain_text as string;
-  const collectionDescription = getRichTextProperty(entry, "Description")
-    .plain_text as string;
-
-  return await twitter.createCollection(collectionName, collectionDescription);
+const getOrCreateCollection = async (entry: CollectionEntry) => {
+  let collectionId;
+  // Make sure there's an "ID"
+  if (isCollectionIdEmpty(entry)) {
+    // If not create the collection
+    // TODO: Make sure all relevant fields are there
+    const collectionName = getTitleValue(entry, "Name");
+    const collectionDescription = getRichTextValue(entry, "Description");
+    collectionId = await twitter.createCollection(
+      collectionName,
+      collectionDescription
+    );
+    const collectionUrl =
+      COLLECTION_URL_PREFIX + collectionId.replace("custom-", "");
+    // Update the Notion entry
+    await notion.updateEntryCollectionId(entry.id, collectionId, collectionUrl);
+  } else {
+    collectionId = getRichTextValue(entry, "ID");
+  }
+  return collectionId;
 };
 
 export const run = async () => {
@@ -28,30 +42,17 @@ export const run = async () => {
 
   // For each of those entries:
   entries.forEach(async (entry) => {
-    let collectionId;
-    // Make sure there's a "Collection ID"
-    if (isCollectionIdEmpty(entry)) {
-      // If not create the collection
-      collectionId = await createCollectionFromEntry(entry);
-      const collectionUrl =
-        COLLECTION_URL_PREFIX + collectionId.replace("custom-", "");
-      // Update the Notion entry
-      await notion.updateEntryCollectionId(
-        entry.id,
-        collectionId,
-        collectionUrl
-      );
-    } else {
-      collectionId = getRichTextProperty(entry, "ID").plain_text as string;
-    }
+    const collectionId = await getOrCreateCollection(entry);
 
     // // Query the Twitter search API with the relevant search terms since the last time job was run
     // // Fetch the IDs of tweets returned from the Twitter API
-    // const searchParams = (getRichTextProperty(entry, "Parameters")
-    //   .plain_text as string).split(",");
-    // const tweets = twitter.searchTweets(searchParams);
-    // console.log(tweets);
+    const searchParams = getRichTextValue(entry, "Search").split(",");
+    // TODO: handle tweet pagination
+    const { statuses } = await twitter.searchTweets(searchParams);
     // Add these Tweet IDs to the relevant Twitter collection using the Twitter collection API
+    statuses.forEach(async (tweet) => {
+      await twitter.addTweetToCollection(collectionId, tweet.id_str);
+    });
   });
 
   return true;
