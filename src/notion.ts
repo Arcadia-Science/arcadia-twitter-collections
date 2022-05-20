@@ -35,7 +35,7 @@ export const getTitleValue = (
   propertyName: CollectionPropertyKeys
 ) => {
   return (entry.properties[propertyName] as TitleProperty).title[0]
-    .plain_text as string;
+    ?.plain_text as string;
 };
 
 export const getRichTextValue = (
@@ -43,11 +43,7 @@ export const getRichTextValue = (
   propertyName: CollectionPropertyKeys
 ) => {
   return (entry.properties[propertyName] as RichTextProperty).rich_text[0]
-    .plain_text as string;
-};
-
-export const isCollectionIdEmpty = (entry: CollectionEntry) => {
-  return !entry.properties.ID.rich_text[0];
+    ?.plain_text as string;
 };
 
 // Interacting with the Notion API

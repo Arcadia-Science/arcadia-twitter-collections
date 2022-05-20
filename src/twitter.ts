@@ -1,6 +1,9 @@
 require("dotenv").config();
 import Twitter from "twitter";
 
+const COLLECTION_NAME_CHAR_LIMIT = 25;
+const COLLECTION_DESCRIPTION_CHAR_LIMIT = 160;
+
 interface Tweet {
   id_str: string;
   text: string;
@@ -46,8 +49,16 @@ export class TwitterAPI {
   }
 
   // Create a Twitter collection with a specific name and description
-  // TODO: Enforce character limits (25 chars for name, 160 chars for description)
   async createCollection(name: string, description: string): Promise<string> {
+    // Enforce character limits (25 chars for name, 160 chars for description)
+    if (
+      name.length > COLLECTION_NAME_CHAR_LIMIT ||
+      description.length > COLLECTION_DESCRIPTION_CHAR_LIMIT
+    )
+      throw new Error(
+        "Collection name or description exceeds allowed character limit."
+      );
+
     return new Promise<string>((resolve, reject) => {
       this.client.post(
         "collections/create",
