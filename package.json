@@ -13,7 +13,7 @@
     "@types/twitter": "^1.7.1",
     "dotenv": "^16.0.1",
     "ts-node": "^10.7.0",
-    "twitter": "^1.7.1",
+    "twitter-api-v2": "^1.12.2",
     "typescript": "^4.6.4"
   }
 }
