@@ -96,3 +96,38 @@ export class TwitterAPI {
     });
   }
 }
+
+// async function recentSearch(reqBody, nextToken) {
+//   // validate requestBody before Search
+//   var rcntSearch = reqBody.recentSearch;
+//   let query = config.recent_search_url + '&query=' + rcntSearch.query + '&max_results=' + rcntSearch.maxResults;
+//   if (nextToken != undefined && nextToken != null)
+//     query = query + '&next_token=' + nextToken;
+//   if (rcntSearch.startTime != undefined && rcntSearch.startTime != null)
+//     query = query + '&start_time=' + rcntSearch.startTime;
+//   if (rcntSearch.endTime != undefined && rcntSearch.endTime != null)
+//     query = query + '&end_time=' + rcntSearch.endTime;
+//   console.log('Recent search query : ', query);
+//   return new Promise(function (resolve, reject) {
+//     let userConfig = {
+//       method: 'get',
+//       url: query,
+//       headers: { 'Authorization': config.twitter_bearer_token }
+//     };
+//     axios(userConfig)
+//       .then(function (response) {
+//         if (response.data.data != null) {
+//           //console.log('response --',response.data);
+//           bq_persist.insertSearchResults(response.data, reqBody);
+//         }
+//         if (response.data.meta != undefined && response.data.meta.next_token != undefined) {
+//           recentSearch(reqBody, response.data.meta.next_token);
+//         }
+//         resolve('Recent Search results are persisted in database');
+//       })
+//       .catch(function (error) {
+//         console.log('ERROR ',error.response.data);
+//         reject(error.response.data);
+//       });
+//   });
+// }
