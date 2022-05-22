@@ -8,7 +8,6 @@ import {
 } from "./notion";
 
 // TODOs:
-//   Add twitter api v2 integration
 //   Improve search query build up
 //   Test filtered stream behavior vs search
 
@@ -88,7 +87,7 @@ export const run = async () => {
     // Add these Tweet IDs to the relevant Twitter collection using the Twitter collection API
     // Potentially we can gather all the promises returned from addTweetToCollection()
     // and do await Promise.all(), but don't want to hit API rate limits
-    statuses.forEach(async (tweet) => {
+    statuses.forEach(async (tweet: any) => {
       try {
         await twitter.addTweetToCollection(collectionId, tweet.id_str);
       } catch (err) {
