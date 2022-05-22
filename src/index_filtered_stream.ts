@@ -7,10 +7,6 @@ import {
   getTitleValue,
 } from "./notion";
 
-// TODOs:
-//   Improve search query build up
-//   Test filtered stream behavior vs search
-
 // Fetch the list of collections
 // Get or create collections
 //   During creation add new rules
@@ -43,10 +39,11 @@ const getOrCreateCollection = async (entry: CollectionEntry) => {
           "Collection missing name, description or search params."
         );
 
-      collectionId = await twitter.createCollection(
+      const collection = await twitter.createCollection(
         collectionName,
         collectionDescription
       );
+      collectionId = collection.timeline_id;
       const collectionUrl =
         COLLECTION_URL_PREFIX + collectionId.replace("custom-", "");
 
@@ -82,18 +79,17 @@ export const run = async () => {
     // If searchParams are empty, exit the loop
     if (!searchParams) return;
 
-    // TODO: handle tweet pagination
-    const { statuses } = await twitter.searchTweets(searchParams.split(","));
+    const tweets = await twitter.searchTweets(searchParams.split(","));
     // Add these Tweet IDs to the relevant Twitter collection using the Twitter collection API
     // Potentially we can gather all the promises returned from addTweetToCollection()
     // and do await Promise.all(), but don't want to hit API rate limits
-    statuses.forEach(async (tweet: any) => {
+    for (const tweet of tweets) {
       try {
-        await twitter.addTweetToCollection(collectionId, tweet.id_str);
+        await twitter.addTweetToCollection(collectionId, tweet.id);
       } catch (err) {
         console.error(err);
       }
-    });
+    }
   });
 
   return true;

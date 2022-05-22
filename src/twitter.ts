@@ -4,10 +4,9 @@ import TwitterApi from "twitter-api-v2";
 const COLLECTION_NAME_CHAR_LIMIT = 25;
 const COLLECTION_DESCRIPTION_CHAR_LIMIT = 160;
 
-interface Tweet {
-  id_str: string;
+export interface Tweet {
+  id: string;
   text: string;
-  full_text: string;
 }
 
 export interface SearchResponse {
@@ -15,8 +14,8 @@ export interface SearchResponse {
   search_metadata: Record<string, string>;
 }
 
-export interface Collection {
-  response: Record<"timeline_id", string>;
+interface Collection {
+  timeline_id: string;
 }
 
 export const COLLECTION_URL_PREFIX =
@@ -41,20 +40,42 @@ export class TwitterAPI {
   }
 
   // Search tweets based on terms
-  async searchTweets(terms: string | string[]): Promise<any> {
+  async searchTweets(terms: string | string[]): Promise<Tweet[]> {
+    // TODO: Potentially add URL as a param, but probably not needed
     const query = typeof terms === "string" ? terms : terms.join(" 0R ");
-    const tweets = await this.appOnlyClient.v2.search(query);
+    const queryWithoutRetweets = query.concat(" -is:retweet");
+    const searchResponse = await this.appOnlyClient.v2.search(
+      queryWithoutRetweets,
+      {
+        max_results: 100,
+      }
+    );
 
-    while (!tweets.done) {
-      await tweets.fetchNext();
+    while (!searchResponse.done) {
+      await searchResponse.fetchNext();
     }
 
-    console.log(tweets);
-    return tweets;
+    return searchResponse.tweets;
+  }
+
+  // Get quote tweets of a tweet with ID
+  async quoteTweetsForTweet(id: string): Promise<Tweet[]> {
+    const quoteTweetsResponse = await this.appOnlyClient.v2.quotes(id, {
+      max_results: 100,
+    });
+
+    while (!quoteTweetsResponse.done) {
+      await quoteTweetsResponse.fetchNext();
+    }
+
+    return quoteTweetsResponse.tweets;
   }
 
   // Create a Twitter collection with a specific name and description
-  async createCollection(name: string, description: string): Promise<any> {
+  async createCollection(
+    name: string,
+    description: string
+  ): Promise<Collection> {
     // Enforce character limits (25 chars for name, 160 chars for description)
     if (
       name.length > COLLECTION_NAME_CHAR_LIMIT ||
@@ -64,36 +85,31 @@ export class TwitterAPI {
         "Collection name or description exceeds allowed character limit."
       );
 
-    const response = await this.userClient.v1.post("collection/create", {
-      name: name,
-      description: description,
-    });
+    const responseObject = await this.userClient.v1.post(
+      "collections/create.json",
+      {
+        name: name,
+        description: description,
+        timeline_order: "tweet_reverse_chron",
+      }
+    );
 
-    console.log(response);
-    return response;
-  }
-
-  // Fetch the specific Twitter collection by ID
-  async getCollection(id: string): Promise<any> {
-    const response = await this.userClient.v1.get("collections/show", {
-      id: id,
-    });
-
-    console.log(response);
-    return response;
+    return responseObject.response;
   }
 
   // Add specific tweet to a Twitter collection
-  async addTweetToCollection(
-    collectionId: string,
-    tweetId: string
-  ): Promise<any> {
-    const response = await this.userClient.v1.post("collections/entries/add", {
+  async addTweetToCollection(collectionId: string, tweetId: string) {
+    await this.userClient.v1.post("collections/entries/add.json", {
       id: collectionId,
       tweet_id: tweetId,
     });
+  }
 
-    console.log(response);
-    return response;
+  // Add a chunk of tweets to a Twitter collection
+  async curateCollection(collectionId: string, changes: Object[]) {
+    await this.userClient.v1.post("collections/entries/curate.json", {
+      id: collectionId,
+      changes: changes,
+    });
   }
 }
