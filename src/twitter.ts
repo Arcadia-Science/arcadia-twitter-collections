@@ -28,6 +28,8 @@ export const COLLECTION_URL_PREFIX =
   "https://twitter.com/ArcadiaScience/timelines/";
 
 // Helpers
+// Given a saerch term or an array of search terms, build a query string
+// that excludes retweets
 export const searchParametersToQuery = (terms: string | string[]) => {
   // TODO: Potentially add URL as a param, but probably not needed
   const query = typeof terms === "string" ? terms : terms.join(" 0R ");
@@ -125,7 +127,7 @@ export class TwitterAPI {
     });
   }
 
-  // FilteredStream endpoints
+  // FilteredStream endpoints, currently unused
   // Add specific tweet to a Twitter collection
   async addRulesToStream(rules: FilteredStreamRule[]) {
     await this.appOnlyClient.v2.updateStreamRules({
@@ -133,11 +135,7 @@ export class TwitterAPI {
     });
   }
 
-  async getStreamRules() {
-    const rules = await this.appOnlyClient.v2.streamRules();
-    console.log(rules);
-  }
-
+  // Open a connection to a FilteredStream but do not connect yet
   getStream() {
     return this.appOnlyClient.v2.searchStream({
       autoConnect: false,
