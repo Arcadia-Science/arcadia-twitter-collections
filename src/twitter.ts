@@ -1,5 +1,6 @@
 require("dotenv").config();
-import TwitterApi from "twitter-api-v2";
+import { TwitterApi } from "twitter-api-v2";
+export { ETwitterStreamEvent } from "twitter-api-v2";
 
 const COLLECTION_NAME_CHAR_LIMIT = 25;
 const COLLECTION_DESCRIPTION_CHAR_LIMIT = 160;
@@ -18,8 +19,20 @@ interface Collection {
   timeline_id: string;
 }
 
+interface FilteredStreamRule {
+  value: string;
+  tag: string;
+}
+
 export const COLLECTION_URL_PREFIX =
   "https://twitter.com/ArcadiaScience/timelines/";
+
+// Helpers
+export const searchParametersToQuery = (terms: string | string[]) => {
+  // TODO: Potentially add URL as a param, but probably not needed
+  const query = typeof terms === "string" ? terms : terms.join(" 0R ");
+  return query.concat(" -is:retweet");
+};
 
 // Interacting with the Twitter API
 export class TwitterAPI {
@@ -39,17 +52,14 @@ export class TwitterAPI {
     this.appOnlyClient = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
   }
 
+  // Tweet search endpoints
+
   // Search tweets based on terms
   async searchTweets(terms: string | string[]): Promise<Tweet[]> {
-    // TODO: Potentially add URL as a param, but probably not needed
-    const query = typeof terms === "string" ? terms : terms.join(" 0R ");
-    const queryWithoutRetweets = query.concat(" -is:retweet");
-    const searchResponse = await this.appOnlyClient.v2.search(
-      queryWithoutRetweets,
-      {
-        max_results: 100,
-      }
-    );
+    const query = searchParametersToQuery(terms);
+    const searchResponse = await this.appOnlyClient.v2.search(query, {
+      max_results: 100,
+    });
 
     while (!searchResponse.done) {
       await searchResponse.fetchNext();
@@ -70,6 +80,8 @@ export class TwitterAPI {
 
     return quoteTweetsResponse.tweets;
   }
+
+  // Collection API endpoints
 
   // Create a Twitter collection with a specific name and description
   async createCollection(
@@ -110,6 +122,25 @@ export class TwitterAPI {
     await this.userClient.v1.post("collections/entries/curate.json", {
       id: collectionId,
       changes: changes,
+    });
+  }
+
+  // FilteredStream endpoints
+  // Add specific tweet to a Twitter collection
+  async addRulesToStream(rules: FilteredStreamRule[]) {
+    await this.appOnlyClient.v2.updateStreamRules({
+      add: rules,
+    });
+  }
+
+  async getStreamRules() {
+    const rules = await this.appOnlyClient.v2.streamRules();
+    console.log(rules);
+  }
+
+  getStream() {
+    return this.appOnlyClient.v2.searchStream({
+      autoConnect: false,
     });
   }
 }
