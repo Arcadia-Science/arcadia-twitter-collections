@@ -51,6 +51,7 @@ const getOrCreateCollection = async (entry: CollectionEntry) => {
 
     // Update the Notion entry
     await notion.updateEntryCollectionId(entry.id, collectionId, collectionUrl);
+    return collectionId;
   } catch (err) {
     console.error(err);
     return undefined;
@@ -81,7 +82,6 @@ export const run = async () => {
     const tweets = await twitter.searchTweets(searchParams.split(","));
     tweetsToAdd.push.apply(tweetsToAdd, tweets);
 
-    console.log(tweetsToAdd);
     // // For each tweet, get all quote tweets
     // for (const tweet of tweets) {
     //   const quoteTweets = await twitter.quoteTweetsForTweet(tweet.id);
