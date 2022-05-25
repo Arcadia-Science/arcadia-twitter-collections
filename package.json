@@ -3,8 +3,7 @@
   "version": "0.0.1",
   "scripts": {
     "build": "tsc",
-    "watch": "tsc --watch",
-    "postinstall": "sh ./scripts/postinstall.sh"
+    "watch": "tsc --watch"
   },
   "packageManager": "yarn@3.1.1",
   "dependencies": {

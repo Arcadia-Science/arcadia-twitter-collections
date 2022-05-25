@@ -58,6 +58,8 @@ const getOrCreateCollection = async (entry: CollectionEntry) => {
 };
 
 export const run = async () => {
+  // await twitter.getCollectionEntries("custom-1527479414790946816");
+  // return true;
   // Fetch the list of collection IDs we need to process
   const entries = await notion.getDatabaseEntries(
     process.env.NOTION_DATABASE_ID

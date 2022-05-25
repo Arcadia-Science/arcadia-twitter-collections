@@ -127,7 +127,16 @@ export class TwitterAPI {
     });
   }
 
+  async getCollectionEntries(collectionId: string) {
+    const response = await this.userClient.v1.get("collections/entries.json", {
+      id: collectionId,
+    });
+    console.log(response);
+    // console.log(response.response.positin.max_position);
+  }
+
   // FilteredStream endpoints, currently unused
+
   // Add specific tweet to a Twitter collection
   async addRulesToStream(rules: FilteredStreamRule[]) {
     await this.appOnlyClient.v2.updateStreamRules({
