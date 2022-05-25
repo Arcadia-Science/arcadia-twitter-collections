@@ -70,7 +70,6 @@ export class TwitterAPI {
     const searchResponse = await this.appOnlyClient.v2.search(query, {
       max_results: 100,
     });
-
     while (!searchResponse.done) {
       await searchResponse.fetchNext();
     }

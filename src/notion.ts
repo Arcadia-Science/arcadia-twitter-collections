@@ -34,16 +34,18 @@ export const getTitleValue = (
   entry: CollectionEntry,
   propertyName: CollectionPropertyKeys
 ) => {
-  return ((entry.properties[propertyName] as TitleProperty).title[0]
-    ?.plain_text as string)?.trim();
+  return (entry.properties[propertyName] as TitleProperty).title
+    .map((section) => (section.plain_text as string)?.trim())
+    .join("");
 };
 
 export const getRichTextValue = (
   entry: CollectionEntry,
   propertyName: CollectionPropertyKeys
 ) => {
-  return ((entry.properties[propertyName] as RichTextProperty).rich_text[0]
-    ?.plain_text as string)?.trim();
+  return (entry.properties[propertyName] as RichTextProperty).rich_text
+    .map((section) => (section.plain_text as string)?.trim())
+    .join("");
 };
 
 // Interacting with the Notion API

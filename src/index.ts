@@ -29,13 +29,13 @@ const prepareTweetsForCollectionsCuration = (tweets: Tweet[]) => {
 
 const getOrCreateCollection = async (entry: CollectionEntry) => {
   // Make sure there's a collection ID
-  const collectionName = getTitleValue(entry, "Name");
   let collectionId = getRichTextValue(entry, "ID");
   if (collectionId) return collectionId;
 
   // If not create the collection
   try {
     // Make sure all relevant fields are there
+    const collectionName = getTitleValue(entry, "Name");
     const collectionDescription = getRichTextValue(entry, "Description");
     const collectionSearchParams = getRichTextValue(entry, "Search");
     if (!collectionName || !collectionDescription || !collectionSearchParams)
@@ -69,13 +69,13 @@ export const run = async () => {
   for (const entry of entries) {
     const collectionId = await getOrCreateCollection(entry);
     // If collectionId doesn't exist, exit the loop
-    if (!collectionId) return;
+    if (!collectionId) continue;
 
     // Query the Twitter search API with the relevant search terms since the last time job was run
     // Fetch the IDs of tweets returned from the Twitter API
     const searchParams = getRichTextValue(entry, "Search");
     // If searchParams are empty, exit the loop
-    if (!searchParams) return;
+    if (!searchParams) continue;
 
     const tweetsToAdd: Tweet[] = [];
     const tweets = await twitter.searchTweets(searchParams.split(","));
