@@ -1,4 +1,5 @@
 require("dotenv").config();
+import { isValidHttpUrl } from "./utils";
 import { TwitterApi } from "twitter-api-v2";
 export { ETwitterStreamEvent } from "twitter-api-v2";
 
@@ -28,11 +29,18 @@ export const COLLECTION_URL_PREFIX =
   "https://twitter.com/ArcadiaScience/timelines/";
 
 // Helpers
-// Given a saerch term or an array of search terms, build a query string
+// Given a query string, if it's a valid URL, parse it as such for Twitter search
+const parseToUrl = (text: string) => {
+  return isValidHttpUrl(text) ? `url: ${encodeURIComponent(text)}` : text;
+};
+
+// Given a search term or an array of search terms, build a query string
 // that excludes retweets
-export const searchParametersToQuery = (terms: string | string[]) => {
-  // TODO: Potentially add URL as a param, but probably not needed
-  const query = typeof terms === "string" ? terms : terms.join(" 0R ");
+const searchParametersToQuery = (terms: string | string[]) => {
+  const query =
+    typeof terms === "string"
+      ? parseToUrl(terms)
+      : terms.map((term) => parseToUrl(term)).join(" OR ");
   return query.concat(" -is:retweet");
 };
 

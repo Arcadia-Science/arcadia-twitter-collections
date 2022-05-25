@@ -29,13 +29,13 @@ const prepareTweetsForCollectionsCuration = (tweets: Tweet[]) => {
 
 const getOrCreateCollection = async (entry: CollectionEntry) => {
   // Make sure there's a collection ID
+  const collectionName = getTitleValue(entry, "Name");
   let collectionId = getRichTextValue(entry, "ID");
   if (collectionId) return collectionId;
 
   // If not create the collection
   try {
     // Make sure all relevant fields are there
-    const collectionName = getTitleValue(entry, "Name");
     const collectionDescription = getRichTextValue(entry, "Description");
     const collectionSearchParams = getRichTextValue(entry, "Search");
     if (!collectionName || !collectionDescription || !collectionSearchParams)
@@ -66,7 +66,7 @@ export const run = async () => {
   );
 
   // For each of those entries:
-  entries.forEach(async (entry) => {
+  for (const entry of entries) {
     const collectionId = await getOrCreateCollection(entry);
     // If collectionId doesn't exist, exit the loop
     if (!collectionId) return;
@@ -81,18 +81,18 @@ export const run = async () => {
     const tweets = await twitter.searchTweets(searchParams.split(","));
     tweetsToAdd.push.apply(tweetsToAdd, tweets);
 
-    // For each tweet, get all quote tweets
-    for (const tweet of tweets) {
-      const quoteTweets = await twitter.quoteTweetsForTweet(tweet.id);
-      tweetsToAdd.push.apply(tweetsToAdd, quoteTweets);
-    }
+    // // For each tweet, get all quote tweets
+    // for (const tweet of tweets) {
+    //   const quoteTweets = await twitter.quoteTweetsForTweet(tweet.id);
+    //   tweetsToAdd.push.apply(tweetsToAdd, quoteTweets);
+    // }
 
     // Add these Tweet IDs to the relevant Twitter collection using the Twitter collection API
     const changes = prepareTweetsForCollectionsCuration(tweetsToAdd);
     for (const chunk of changes) {
       await twitter.curateCollection(collectionId, chunk);
     }
-  });
+  }
 
   return true;
 };
