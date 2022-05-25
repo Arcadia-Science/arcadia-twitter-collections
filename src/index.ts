@@ -81,6 +81,7 @@ export const run = async () => {
     const tweets = await twitter.searchTweets(searchParams.split(","));
     tweetsToAdd.push.apply(tweetsToAdd, tweets);
 
+    console.log(tweetsToAdd);
     // // For each tweet, get all quote tweets
     // for (const tweet of tweets) {
     //   const quoteTweets = await twitter.quoteTweetsForTweet(tweet.id);
@@ -94,6 +95,7 @@ export const run = async () => {
     }
   }
 
+  console.log("Successfully finished running the job.");
   return true;
 };
 
