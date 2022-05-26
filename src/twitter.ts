@@ -20,7 +20,7 @@ interface Collection {
   timeline_id: string;
 }
 
-interface FilteredStreamRule {
+export interface FilteredStreamRule {
   value: string;
   tag: string;
 }
@@ -39,11 +39,11 @@ const parseQueryParams = (text: string) => {
 
 // Given a search term or an array of search terms, build a query string
 // that excludes retweets
-const searchParametersToQuery = (terms: string | string[]) => {
+export const searchParametersToQuery = (terms: string | string[]) => {
   const query =
     typeof terms === "string"
-      ? parseQueryParams(terms)
-      : terms.map((term) => parseQueryParams(term)).join(" OR ");
+      ? parseQueryParams(terms.trim())
+      : terms.map((term) => parseQueryParams(term.trim())).join(" OR ");
   return query.concat(" -is:retweet");
 };
 
@@ -93,6 +93,36 @@ export class TwitterAPI {
     return quoteTweetsResponse.tweets;
   }
 
+  // FilteredStream endpoints
+
+  // Open a connection to a FilteredStream but do not connect yet
+  getStream() {
+    return this.appOnlyClient.v2.searchStream({
+      autoConnect: false,
+    });
+  }
+
+  // Get all applied rules to the FilteredStream
+  async getAllStreamRules() {
+    return await this.appOnlyClient.v2.streamRules();
+  }
+
+  // Add a set of rules to a Twitter FilteredStream
+  async addRulesToStream(rules: FilteredStreamRule[]) {
+    await this.appOnlyClient.v2.updateStreamRules({
+      add: rules,
+    });
+  }
+
+  // Delete a set (specified as an array of IDs) of rules from a Twitter FilteredStream
+  async deleteRulesFromStream(rules: string[]) {
+    await this.appOnlyClient.v2.updateStreamRules({
+      delete: {
+        ids: rules,
+      },
+    });
+  }
+
   // Collection API endpoints
 
   // Create a Twitter collection with a specific name and description
@@ -134,22 +164,6 @@ export class TwitterAPI {
     await this.userClient.v1.post("collections/entries/curate.json", {
       id: collectionId,
       changes: changes,
-    });
-  }
-
-  // FilteredStream endpoints, currently unused
-
-  // Add specific tweet to a Twitter collection
-  async addRulesToStream(rules: FilteredStreamRule[]) {
-    await this.appOnlyClient.v2.updateStreamRules({
-      add: rules,
-    });
-  }
-
-  // Open a connection to a FilteredStream but do not connect yet
-  getStream() {
-    return this.appOnlyClient.v2.searchStream({
-      autoConnect: false,
     });
   }
 }
