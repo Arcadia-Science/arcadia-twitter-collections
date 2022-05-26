@@ -29,9 +29,12 @@ export const COLLECTION_URL_PREFIX =
   "https://twitter.com/ArcadiaScience/timelines/";
 
 // Helpers
-// Given a query string, if it's a valid URL, parse it as such for Twitter search
-const parseToUrl = (text: string) => {
-  return isValidHttpUrl(text) ? `url: ${encodeURIComponent(text)}` : text;
+// Given a query string, if it's a valid URL, parse it as a URL for Twitter search
+// Otherwise parse it as an exact match string
+const parseQueryParams = (text: string) => {
+  return isValidHttpUrl(text)
+    ? `url: ${encodeURIComponent(text)}`
+    : `"${text}"`;
 };
 
 // Given a search term or an array of search terms, build a query string
@@ -39,8 +42,8 @@ const parseToUrl = (text: string) => {
 const searchParametersToQuery = (terms: string | string[]) => {
   const query =
     typeof terms === "string"
-      ? parseToUrl(terms)
-      : terms.map((term) => parseToUrl(term)).join(" OR ");
+      ? parseQueryParams(terms)
+      : terms.map((term) => parseQueryParams(term)).join(" OR ");
   return query.concat(" -is:retweet");
 };
 
@@ -132,14 +135,6 @@ export class TwitterAPI {
       id: collectionId,
       changes: changes,
     });
-  }
-
-  async getCollectionEntries(collectionId: string) {
-    const response = await this.userClient.v1.get("collections/entries.json", {
-      id: collectionId,
-    });
-    console.log(response);
-    // console.log(response.response.positin.max_position);
   }
 
   // FilteredStream endpoints, currently unused
