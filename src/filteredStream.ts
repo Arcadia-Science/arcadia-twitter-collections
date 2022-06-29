@@ -12,10 +12,6 @@ process.on("SIGINT", gracefulExit);
 process.on("unhandledRejection", gracefulExit);
 
 const streamTweets = async () => {
-  // const allRules = await twitter.getAllStreamRules();
-  // console.log(allRules);
-  // await twitter.deleteRulesFromStream(allRules.data.map((rule) => rule.id));
-
   stream.on(ETwitterStreamEvent.ConnectionError, (err) =>
     console.error("Connection error: ", err)
   );

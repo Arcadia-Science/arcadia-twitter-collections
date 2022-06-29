@@ -57,9 +57,9 @@ touch yarn.lock
 
 Once the installation is complete, you can build the job with `yarn build` or `yarn watch`.
 
-### Running the
+### Running the services
 
-You can run the script with `node dist/index.js`
+You can run the job manually with `yarn runJob` and the stream with `yarn stream` locally.
 
 ### Deploying the cron job
 
