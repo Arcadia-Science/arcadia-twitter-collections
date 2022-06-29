@@ -2,6 +2,8 @@ require("dotenv").config();
 import {
   COLLECTION_URL_PREFIX,
   FilteredStreamRule,
+  groupRulesByTag,
+  prepareTweetsForCollectionsCuration,
   searchParametersToQuery,
   Tweet,
   TwitterAPI,
@@ -12,25 +14,19 @@ import {
   getRichTextValue,
   getTitleValue,
 } from "./notion";
-import { sliceIntoChunks } from "./utils";
 
 // Set Twitter and Notion API integrations
 const twitter = new TwitterAPI();
 const notion = new NotionAPI();
 
-// Collections "curate" endpoint expects changes in chunks of 100 additions/removals
-// And as an array of objects in the following format:
-//   {"op": "add", "tweet_id": "X"} OR
-//   {"op": "remove","tweet_id": "Y"}
-const prepareTweetsForCollectionsCuration = (tweets: Tweet[]) => {
-  const tweetsToAdditionChanges = tweets.map((tweet) => {
-    return {
-      op: "add",
-      tweet_id: tweet.id,
-    };
-  });
-
-  return sliceIntoChunks(tweetsToAdditionChanges, 100);
+const updateNotionDatabaseEntry = async (
+  entry: CollectionEntry,
+  collectionId: string
+) => {
+  // Update the Notion entry
+  const collectionUrl =
+    COLLECTION_URL_PREFIX + collectionId.replace("custom-", "");
+  await notion.updateEntryCollectionId(entry.id, collectionId, collectionUrl);
 };
 
 const backfillCollection = async (
@@ -63,65 +59,82 @@ const backfillCollection = async (
   }
 };
 
+const createTwitterStreamRules = async (
+  entry: CollectionEntry,
+  collectionId: string
+) => {
+  const collectionSearchParams = getRichTextValue(entry, "Search");
+  const ruleValue = searchParametersToQuery(collectionSearchParams.split(","));
+  const rule: FilteredStreamRule = {
+    value: ruleValue,
+    tag: collectionId,
+  };
+  await twitter.addRulesToStream([rule]);
+};
+
+const createTwitterCollection = async (entry: CollectionEntry) => {
+  // Make sure all relevant fields are there
+  const collectionName = getTitleValue(entry, "Name");
+  const collectionDescription = getRichTextValue(entry, "Description");
+  const collectionSearchParams = getRichTextValue(entry, "Search");
+  if (!collectionName || !collectionDescription || !collectionSearchParams)
+    throw new Error("Collection missing name, description or search params.");
+
+  const collection = await twitter.createCollection(
+    collectionName,
+    collectionDescription
+  );
+  return collection.timeline_id;
+};
+
 export const collectionCronJob = async () => {
   // Fetch the list of collection IDs we need to process
   const entries = await notion.getDatabaseEntries(
     process.env.NOTION_DATABASE_ID
   );
 
+  // Fetch the list of rules for our filtered stream
+  const allRules = await twitter.getAllStreamRules();
+  const rulesByCollectionId = groupRulesByTag(allRules);
+
   // For each of those entries:
   for (const entry of entries) {
     // Make sure there's a collection ID
     let collectionId = getRichTextValue(entry, "ID");
+
+    // If the collection ID exists, see if we need to update search rules
     if (collectionId) {
-      // TODO:
-      // Here, we can technically update the rules if needed
-      // Find the rules corresponding to the collectionId
       // If the search param is empty, do nothing
-      // Check that agains the expected search query
-      // If it's different, delete the existing rule and create a new rule,
-      // potentially trigger a backfill
-      // If it's the same, do nothing
+      const collectionSearchParams = getRichTextValue(entry, "Search");
+      if (!collectionSearchParams) continue;
+
+      // If collection has more than one rule, something went wrong, do nothing
+      const collectionRules = rulesByCollectionId[collectionId];
+      if (!collectionRules || collectionRules.length > 1) continue;
+
+      const collectionRule = collectionRules[0];
+      const ruleValue = searchParametersToQuery(
+        collectionSearchParams.split(",")
+      );
+      // Rule hasn't changed, do nothing
+      if (collectionRule.value === ruleValue) continue;
+
+      // If the rules have changed, create new rules and the delete old one
+      await createTwitterStreamRules(entry, collectionId);
+      await twitter.deleteRulesFromStream([collectionRule.id]);
+
+      // Trigger a backfill
+      await backfillCollection(entry, collectionId);
     } else {
-      // If not create the collection
       try {
-        // Make sure all relevant fields are there
-        const collectionName = getTitleValue(entry, "Name");
-        const collectionDescription = getRichTextValue(entry, "Description");
-        const collectionSearchParams = getRichTextValue(entry, "Search");
-        if (
-          !collectionName ||
-          !collectionDescription ||
-          !collectionSearchParams
-        )
-          throw new Error(
-            "Collection missing name, description or search params."
-          );
+        // If not create the collection
+        const collectionId = await createTwitterCollection(entry);
 
-        const collection = await twitter.createCollection(
-          collectionName,
-          collectionDescription
-        );
-        collectionId = collection.timeline_id;
-        const collectionUrl =
-          COLLECTION_URL_PREFIX + collectionId.replace("custom-", "");
+        // Update Notion
+        await updateNotionDatabaseEntry(entry, collectionId);
 
-        // Add rules to Twitter
-        const ruleValue = searchParametersToQuery(
-          collectionSearchParams.split(",")
-        );
-        const rule: FilteredStreamRule = {
-          value: ruleValue,
-          tag: collectionId,
-        };
-        await twitter.addRulesToStream([rule]);
-
-        // Update the Notion entry
-        await notion.updateEntryCollectionId(
-          entry.id,
-          collectionId,
-          collectionUrl
-        );
+        // Create Twitter filtered stream rules
+        await createTwitterStreamRules(entry, collectionId);
 
         // Backfill the collection tweets for the last 7 days
         await backfillCollection(entry, collectionId);

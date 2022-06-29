@@ -1,6 +1,6 @@
 require("dotenv").config();
-import { isValidHttpUrl } from "./utils";
-import { TwitterApi } from "twitter-api-v2";
+import { isValidHttpUrl, sliceIntoChunks } from "./utils";
+import { StreamingV2Rule, TwitterApi } from "twitter-api-v2";
 export { ETwitterStreamEvent } from "twitter-api-v2";
 
 const COLLECTION_NAME_CHAR_LIMIT = 25;
@@ -45,6 +45,39 @@ export const searchParametersToQuery = (terms: string | string[]) => {
       ? parseQueryParams(terms.trim())
       : terms.map((term) => parseQueryParams(term.trim())).join(" OR ");
   return query.concat(" -is:retweet");
+};
+
+// Collections "curate" endpoint expects changes in chunks of 100 additions/removals
+// And as an array of objects in the following format:
+//   {"op": "add", "tweet_id": "X"} OR
+//   {"op": "remove","tweet_id": "Y"}
+export const prepareTweetsForCollectionsCuration = (tweets: Tweet[]) => {
+  const tweetsToAdditionChanges = tweets.map((tweet) => {
+    return {
+      op: "add",
+      tweet_id: tweet.id,
+    };
+  });
+
+  return sliceIntoChunks(tweetsToAdditionChanges, 100);
+};
+
+// Rules have the following format:
+//  [{"id": "1212121212", "value": "search" ,"tag": "custom-1515151515"}]
+// This function groups them by tag and returns an object of tag to array of rules
+// Example output:
+//  {"custom-1515151515" [{"id": "1212121212", "value": "search" ,"tag": "custom-1515151515"}]}
+export const groupRulesByTag = (
+  rules: StreamingV2Rule[]
+): Record<string, StreamingV2Rule[]> => {
+  return rules.reduce(function (
+    rv: Record<string, StreamingV2Rule[]>,
+    x: StreamingV2Rule
+  ) {
+    (rv[x.tag] = rv[x.tag] || []).push(x);
+    return rv;
+  },
+  {});
 };
 
 // Interacting with the Twitter API
@@ -104,7 +137,8 @@ export class TwitterAPI {
 
   // Get all applied rules to the FilteredStream
   async getAllStreamRules() {
-    return await this.appOnlyClient.v2.streamRules();
+    const responseObject = await this.appOnlyClient.v2.streamRules();
+    return responseObject.data;
   }
 
   // Add a set of rules to a Twitter FilteredStream
