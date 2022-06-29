@@ -67,11 +67,15 @@ The job runs on [Render](https://dashboard.render.com/) every 5 minutes using th
 
 This README will not go through the full configuration process since Render's documentation around their cron job service is robust. But please see the attached configuration as an example.
 
+<img width="982" alt="cron" src="https://user-images.githubusercontent.com/2692053/176502681-f4e8ed42-960d-489f-a732-e3e2c3bd47a7.png">
+
 ### Deploying the server for the filtered stream
 
 The server runs on [Render](https://dashboard.render.com/) using their [background workers](https://render.com/docs/background-workers) service.
 
 This README will not go through the full configuration process since Render's documentation around their cron job service is robust. But please see the attached configuration as an example.
+
+<img width="992" alt="stream" src="https://user-images.githubusercontent.com/2692053/176502717-590dd080-3f79-4f50-9f56-9e8428913de3.png">
 
 ## Using Notion as the database
 
