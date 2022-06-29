@@ -1,12 +1,33 @@
 # arcadia-twitter-collections
 
-This repo implements a periodic job that pulls relevant tweets from the [Twitter API](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/api-reference/get-search-tweets) (based on search params) and adds them to publication specific [Twitter collections](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/curate-a-collection/overview/about_collections). The job runs on [Render](https://dashboard.render.com/) every 5 minutes using their [Cron job](https://render.com/docs/cronjobs) service.
+## Goals of the project
+
+### Context
+
+- A lot of discourse around scientific publications happen on Twitter.
+- For a given publication, [Arcadia Science](https://www.arcadiascience.com/) would like to collect relevant tweets (based on DOI number or URL) and display these on the publication page for broader visibility and engagement.
+- Currently, there isn’t an easy way to have a collection of tweets based on a search query (ie DOI number or URL). This is because Twitter API was modified in 2018 to deprecate this functionality.
+- We'd like to have a collection of tweets specific to each publication embeddable on our publishing platform, [PubPub](https://research.arcadiascience.com/).
+
+### Desired functionality
+
+- Easily create a new Twitter collection per pub
+- Specify what search terms should be used for populating the tweets for the collection
+- Automate the process of populating the tweets for the collection using Twitter’s API
+- Easily embed the created collection on our publication platform
+
+## Solution
+
+To fulfill these goals, this repo implements two services:
+
+- A [periodic job](https://github.com/Arcadia-Science/arcadia-twitter-collections/blob/main/src/collectionCronJob.ts) that sets up the [Twitter collections](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/curate-a-collection/overview/about_collections) and their respective [filtered streams](https://developer.twitter.com/en/docs/twitter-api/tweets/filtered-stream/introduction). This job also backfills the tweets for the collection using the [Twitter API](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/api-reference/get-search-tweets). The job runs on [Render](https://dashboard.render.com/) every 5 minutes using their [Cron job](https://render.com/docs/cronjobs) service.
+- An [ongoing server](https://github.com/Arcadia-Science/arcadia-twitter-collections/blob/main/src/filteredStream.ts) that listens for the Twitter API FilteredStream events. The server runs on [Render](https://dashboard.render.com/) using their [background workers](https://render.com/docs/background-workers) service.
 
 The configuration of what collections to create and what search terms to use are managed in a no-code way in [Notion](https://developers.notion.com/docs/getting-started).
 
 If you have any questions about the implementation please reach out to [mertcelebi](https://github.com/mertcelebi).
 
-#### Getting started
+## Getting started
 
 Create `.env` file with:
 
@@ -34,24 +55,38 @@ If you run into issues, you may have to create `yarn.lock` manually:
 touch yarn.lock
 ```
 
-Once the installation is complete, you can build the job with `yarn build` or `yarn watch`. You can run the script with `node dist/index.js`
+Once the installation is complete, you can build the job with `yarn build` or `yarn watch`.
 
-#### Using Notion as the database
+### Running the
+
+You can run the script with `node dist/index.js`
+
+### Deploying the cron job
+
+The job runs on [Render](https://dashboard.render.com/) every 5 minutes using their [Cron job](https://render.com/docs/cronjobs) service.
+
+This README will not go through the full configuration process since Render's documentation around their cron job service is robust. But please see the attached configuration as an example.
+
+### Deploying the server for the filtered stream
+
+The server runs on [Render](https://dashboard.render.com/) using their [background workers](https://render.com/docs/background-workers) service.
+
+This README will not go through the full configuration process since Render's documentation around their cron job service is robust. But please see the attached configuration as an example.
+
+## Using Notion as the database
 
 This project was built under a tight timeline. It needed a data store to host all the Twitter collection metadata (name, description, search parameters). Non-technical people had to be able to modify the metadata to manage collections.
 
-Arcadia Science uses Notion for our internal team wiki. So instead of storing this data in a heavy-duty database and exposing a UI on top of it for modifications, we decided to use Notion to host this data.
+[Arcadia Science](https://www.arcadiascience.com/) uses Notion for our internal team wiki. So instead of storing this data in a heavy-duty database and exposing a UI on top of it for modifications, we decided to use Notion to host this data.
 
-So, all the Twitter collection logic may be irrelevant for you. Luckily, those parts are clearly delinated in the codebase.
+If you care for the Notion API module used as part of this repository check out [here](https://github.com/Arcadia-Science/arcadia-twitter-collections/blob/main/src/notion.ts).
 
-#### Using Twitter v1.1 and v2 endpoints
+If you care for the Twitter API module used as part of this repository check out [here](https://github.com/Arcadia-Science/arcadia-twitter-collections/blob/main/src/twitter.ts).
+
+## Using Twitter v1.1 and v2 endpoints
 
 Twitter unfortunately removed the [collections functionality](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/curate-a-collection/overview/about_collections) in their API v2. So, if you need to use collections, you need access to API v1.1. For this you need "Elevated" API access on Twitter which requires a simple application. Our application took less than 24 hours to get approved.
 
 You can use the search functionality present in API v1.1, but we decided to use API v2 for the search functionality since it's more robust and allows more flexibility (direct search vs. FilteredStreams).
 
-This project uses the [v2 recent search endpoint](https://developer.twitter.com/en/docs/twitter-api/tweets/search/api-reference/get-tweets-search-recent) for fetching relevant tweets and for each tweet fetches all [its quote tweets](https://developer.twitter.com/en/docs/twitter-api/tweets/quote-tweets/api-reference/get-tweets-id-quote_tweets). This is suboptimal and inelegant. Sadly, the recent search endpoint does not match quote tweets based on the search query.
-
-You'll also notice that every single time this job runs, it fetches all the available tweets as far the search endpoint goes (7 days). This is also suboptimal and quite brute-force. But this allowed us to finish the project on time and was a reasonable trade-off since we don't expect a large volume of tweets.
-
-Ideally, this project would use the `FilteredStream` [API endpoints](https://developer.twitter.com/en/docs/twitter-api/tweets/filtered-stream/api-reference) to manage rules tagged by collection ID. But the documentation around `FilteredStream` API endpoints is sparse, and its usage requires a lot of battle testing to make sure the stream doesn't miss tweets during moments of disconnects.
+First time a collection is created, this project uses the [v2 recent search endpoint](https://developer.twitter.com/en/docs/twitter-api/tweets/search/api-reference/get-tweets-search-recent) for backfilling relevant tweets and for each tweet fetches all [its quote tweets](https://developer.twitter.com/en/docs/twitter-api/tweets/quote-tweets/api-reference/get-tweets-id-quote_tweets). This is suboptimal and inelegant. Sadly, the recent search endpoint does not match quote tweets based on the search query.
