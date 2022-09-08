@@ -119,9 +119,9 @@ export const collectionCronJob = async () => {
       // Rule hasn't changed, do nothing
       if (collectionRule.value === ruleValue) continue;
 
-      // If the rules have changed, create new rules and the delete old one
-      await createTwitterStreamRules(entry, collectionId);
+      // If the rules have changed, the delete old one and create the new rule
       await twitter.deleteRulesFromStream([collectionRule.id]);
+      await createTwitterStreamRules(entry, collectionId);
 
       // Trigger a backfill
       await backfillCollection(entry, collectionId);
