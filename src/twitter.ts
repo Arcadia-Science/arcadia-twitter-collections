@@ -138,7 +138,7 @@ export class TwitterAPI {
   // Get all applied rules to the FilteredStream
   async getAllStreamRules() {
     const responseObject = await this.appOnlyClient.v2.streamRules();
-    return responseObject.data;
+    return responseObject.data || [];
   }
 
   // Add a set of rules to a Twitter FilteredStream
