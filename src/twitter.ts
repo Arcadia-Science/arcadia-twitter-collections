@@ -33,7 +33,7 @@ export const COLLECTION_URL_PREFIX =
 // Otherwise parse it as an exact match string
 const parseQueryParams = (text: string) => {
   return isValidHttpUrl(text)
-    ? `url: ${encodeURIComponent(text)}`
+    ? `url_contains: ${encodeURIComponent(text)}`
     : `"${text}"`;
 };
 

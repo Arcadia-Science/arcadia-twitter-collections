@@ -6,4 +6,5 @@ yarn-error.log
 .DS_Store
 dump.rdb
 .yarn/
+.pnp.cjs
 backup/
