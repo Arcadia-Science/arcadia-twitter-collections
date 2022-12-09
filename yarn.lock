@@ -137,7 +137,7 @@ __metadata:
     "@types/twitter": ^1.7.1
     dotenv: ^16.0.1
     ts-node: ^10.7.0
-    twitter-api-v2: ^1.12.2
+    twitter-api-v2: ^1.12.9
     typescript: ^4.6.4
   languageName: unknown
   linkType: soft
@@ -297,10 +297,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"twitter-api-v2@npm:^1.12.2":
-  version: 1.12.2
-  resolution: "twitter-api-v2@npm:1.12.2"
-  checksum: 5dc521fa930ba2ef70175e0b8a08b5aebec79926e667ae50ec35501c34004c18a1eb3c29d102f8201c8f2d670b7fb160bb0e74801ea8081945f12288b1887106
+"twitter-api-v2@npm:^1.12.9":
+  version: 1.12.9
+  resolution: "twitter-api-v2@npm:1.12.9"
+  checksum: e2cffd507d7403e600d0d1d48ab7cd9df95b7193328a0791126c1bac040a77fed379fba295dfe022888b817b8b3dd19a57e20b69dbf8a1ab5b90eb4e0f30007f
   languageName: node
   linkType: hard
 
