@@ -126,6 +126,11 @@ export class TwitterAPI {
     return quoteTweetsResponse.tweets;
   }
 
+  // Get the tweet with a given ID (used for debugging)
+  async getTweet(id: string): Promise<Tweet> {
+    return await this.appOnlyClient.v2.singleTweet(id);
+  }
+
   // FilteredStream endpoints
 
   // Open a connection to a FilteredStream but do not connect yet
