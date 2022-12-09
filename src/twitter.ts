@@ -1,6 +1,10 @@
 require("dotenv").config();
 import { isValidHttpUrl, sliceIntoChunks } from "./utils";
-import { StreamingV2Rule, TwitterApi } from "twitter-api-v2";
+import {
+  StreamingV2Rule,
+  TwitterApi,
+  TweetV2SingleResult,
+} from "twitter-api-v2";
 export { ETwitterStreamEvent } from "twitter-api-v2";
 
 const COLLECTION_NAME_CHAR_LIMIT = 25;
@@ -127,7 +131,7 @@ export class TwitterAPI {
   }
 
   // Get the tweet with a given ID (used for debugging)
-  async getTweet(id: string): Promise<Tweet> {
+  async getTweet(id: string): Promise<TweetV2SingleResult> {
     return await this.appOnlyClient.v2.singleTweet(id);
   }
 
