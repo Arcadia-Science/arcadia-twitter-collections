@@ -32,7 +32,7 @@ export const COLLECTION_URL_PREFIX =
 // Given a query string, if it's a valid URL, parse it as a URL for Twitter search
 // Otherwise parse it as an exact match string
 const parseQueryParams = (text: string) => {
-  if (isValidHttpUrl(text)) return `url: ${encodeURIComponent(text)}`;
+  if (isValidHttpUrl(text)) return `url:"${text}"`;
   if (text.startsWith("#")) return text;
   else return `"${text}"`;
 };
