@@ -48,7 +48,7 @@ export const searchParametersToQuery = (terms: string | string[]) => {
     typeof terms === "string"
       ? parseQueryParams(terms.trim())
       : terms.map((term) => parseQueryParams(term.trim())).join(" OR ");
-  return query.concat(" -is:retweet");
+  return `(${query}) -is:retweet`;
 };
 
 // Collections "curate" endpoint expects changes in chunks of 100 additions/removals
