@@ -29,9 +29,6 @@ export interface FilteredStreamRule {
   tag: string;
 }
 
-export const COLLECTION_URL_PREFIX =
-  "https://twitter.com/ArcadiaScience/timelines/";
-
 // Helpers
 // Given a query string, if it's a valid URL, parse it as a URL for Twitter search
 // Otherwise parse it as an exact match string
