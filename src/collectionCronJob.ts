@@ -1,6 +1,5 @@
 require("dotenv").config();
 import {
-  COLLECTION_URL_PREFIX,
   FilteredStreamRule,
   groupRulesByTag,
   prepareTweetsForCollectionsCuration,
@@ -25,7 +24,7 @@ const updateNotionDatabaseEntry = async (
 ) => {
   // Update the Notion entry
   const collectionUrl =
-    COLLECTION_URL_PREFIX + collectionId.replace("custom-", "");
+    process.env.COLLECTION_URL_PREFIX + collectionId.replace("custom-", "");
   await notion.updateEntryCollectionId(entry.id, collectionId, collectionUrl);
 };
 
