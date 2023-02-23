@@ -103,6 +103,15 @@ export const collectionCronJob = async () => {
 
     // If the collection ID exists, see if we need to update search rules
     if (collectionId) {
+      // Always keep the collection name and description up-to-date
+      const collectionName = getTitleValue(entry, "Name");
+      const collectionDescription = getRichTextValue(entry, "Description");
+      await twitter.updateCollection(
+        collectionId,
+        collectionName,
+        collectionDescription
+      );
+
       // If the search param is empty, do nothing
       const collectionSearchParams = getRichTextValue(entry, "Search");
       if (!collectionSearchParams) continue;

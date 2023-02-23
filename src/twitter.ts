@@ -191,6 +191,19 @@ export class TwitterAPI {
     return responseObject.response;
   }
 
+  // Update the name and description for a given collection
+  async updateCollection(
+    collectionId: string,
+    name: string,
+    description: string
+  ) {
+    return await this.userClient.v1.post("collections/update.json", {
+      id: collectionId,
+      name,
+      description,
+    });
+  }
+
   // Add specific tweet to a Twitter collection
   async addTweetToCollection(collectionId: string, tweetId: string) {
     await this.userClient.v1.post("collections/entries/add.json", {
