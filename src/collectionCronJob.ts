@@ -1,18 +1,13 @@
 require("dotenv").config();
-import {
-  FilteredStreamRule,
-  groupRulesByTag,
-  prepareTweetsForCollectionsCuration,
-  searchParametersToQuery,
-  Tweet,
-  TwitterAPI,
-} from "./twitter";
+import { TwitterAPI } from "./twitter";
 import {
   CollectionEntry,
   NotionAPI,
   getRichTextValue,
   getTitleValue,
 } from "./notion";
+
+const ID_LENGTH = 19;
 
 // Set Twitter and Notion API integrations
 const twitter = new TwitterAPI();
@@ -28,7 +23,7 @@ const updateNotionDatabaseEntry = async (
   await notion.updateEntryCollectionId(entry.id, collectionId, collectionUrl);
 };
 
-const backfillCollection = async (
+const fetchTweetsForEntry = async (
   entry: CollectionEntry,
   collectionId: string
 ) => {
@@ -41,37 +36,34 @@ const backfillCollection = async (
   // If searchParams are empty, exit the loop
   if (!searchParams) return;
 
-  const tweetsToAdd: Tweet[] = [];
-  const tweets = await twitter.searchTweets(searchParams.split(","));
-  tweetsToAdd.push.apply(tweetsToAdd, tweets);
+  const fetchedTweets = getRichTextValue(entry, "Tweets")
+    .split(",")
+    .map((item: string) => item.trim())
+    .filter(Boolean);
 
-  // For each tweet, get all quote tweets
-  for (const tweet of tweets) {
-    const quoteTweets = await twitter.quoteTweetsForTweet(tweet.id);
-    tweetsToAdd.push.apply(tweetsToAdd, quoteTweets);
+  const lastTweet = fetchedTweets.reduce(
+    (prev, curr) => (curr > prev ? curr : prev),
+    ""
+  );
+
+  const tweets = await twitter.searchTweets(searchParams.split(","), lastTweet);
+
+  if (tweets.length > 0) {
+    const allTweets = [
+      ...new Set([...fetchedTweets, ...tweets.map((tweet) => tweet.id)]),
+    ];
+
+    await notion.updateEntryTweets(entry.id, allTweets);
   }
 
-  // Add these Tweet IDs to the relevant Twitter collection using the Twitter collection API
-  const changes = prepareTweetsForCollectionsCuration(tweetsToAdd);
-  for (const chunk of changes) {
-    await twitter.curateCollection(collectionId, chunk);
-  }
+  // // For each tweet, get all quote tweets
+  // for (const tweet of tweets) {
+  //   const quoteTweets = await twitter.quoteTweetsForTweet(tweet.id);
+  //   tweetsToAdd.push.apply(tweetsToAdd, quoteTweets);
+  // }
 };
 
-const createTwitterStreamRules = async (
-  entry: CollectionEntry,
-  collectionId: string
-) => {
-  const collectionSearchParams = getRichTextValue(entry, "Search");
-  const ruleValue = searchParametersToQuery(collectionSearchParams.split(","));
-  const rule: FilteredStreamRule = {
-    value: ruleValue,
-    tag: collectionId,
-  };
-  await twitter.addRulesToStream([rule]);
-};
-
-const createTwitterCollection = async (entry: CollectionEntry) => {
+const generateCollectionId = async (entry: CollectionEntry) => {
   // Make sure all relevant fields are there
   const collectionName = getTitleValue(entry, "Name");
   const collectionDescription = getRichTextValue(entry, "Description");
@@ -79,11 +71,14 @@ const createTwitterCollection = async (entry: CollectionEntry) => {
   if (!collectionName || !collectionDescription || !collectionSearchParams)
     throw new Error("Collection missing name, description or search params.");
 
-  const collection = await twitter.createCollection(
-    collectionName,
-    collectionDescription
+  // Make IDs look like Twitter IDs, this should be reasonably unique for our use-case
+  return (
+    "custom-" +
+    Math.ceil(Math.random() * Date.now())
+      .toPrecision(ID_LENGTH)
+      .toString()
+      .replace(".", "")
   );
-  return collection.timeline_id;
 };
 
 export const collectionCronJob = async () => {
@@ -92,10 +87,6 @@ export const collectionCronJob = async () => {
     process.env.NOTION_DATABASE_ID
   );
 
-  // Fetch the list of rules for our filtered stream
-  const allRules = await twitter.getAllStreamRules();
-  const rulesByCollectionId = groupRulesByTag(allRules);
-
   // For each of those entries:
   for (const entry of entries) {
     // Make sure there's a collection ID
@@ -103,49 +94,23 @@ export const collectionCronJob = async () => {
 
     // If the collection ID exists, see if we need to update search rules
     if (collectionId) {
-      // Always keep the collection name and description up-to-date
-      const collectionName = getTitleValue(entry, "Name");
-      const collectionDescription = getRichTextValue(entry, "Description");
-      await twitter.updateCollection(
-        collectionId,
-        collectionName,
-        collectionDescription
-      );
-
       // If the search param is empty, do nothing
       const collectionSearchParams = getRichTextValue(entry, "Search");
       if (!collectionSearchParams) continue;
 
-      // If collection has more than one rule, something went wrong, do nothing
-      const collectionRules = rulesByCollectionId[collectionId];
-      if (!collectionRules || collectionRules.length > 1) continue;
-
-      const collectionRule = collectionRules[0];
-      const ruleValue = searchParametersToQuery(
-        collectionSearchParams.split(",")
-      );
-      // Rule hasn't changed, do nothing
-      if (collectionRule.value === ruleValue) continue;
-
-      // If the rules have changed, the delete old one and create the new rule
-      await twitter.deleteRulesFromStream([collectionRule.id]);
-      await createTwitterStreamRules(entry, collectionId);
-
       // Trigger a backfill
-      await backfillCollection(entry, collectionId);
+      await fetchTweetsForEntry(entry, collectionId);
+      return;
     } else {
       try {
         // If not create the collection
-        const collectionId = await createTwitterCollection(entry);
+        const collectionId = await generateCollectionId(entry);
 
         // Update Notion
         await updateNotionDatabaseEntry(entry, collectionId);
 
-        // Create Twitter filtered stream rules
-        await createTwitterStreamRules(entry, collectionId);
-
         // Backfill the collection tweets for the last 7 days
-        await backfillCollection(entry, collectionId);
+        await fetchTweetsForEntry(entry, collectionId);
       } catch (err) {
         console.error(err);
       }

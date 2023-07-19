@@ -102,13 +102,26 @@ export class TwitterAPI {
   // Tweet search endpoints
 
   // Search tweets based on terms
-  async searchTweets(terms: string | string[]): Promise<Tweet[]> {
-    const query = searchParametersToQuery(terms);
-    const searchResponse = await this.appOnlyClient.v2.search(query, {
+  async searchTweets(
+    terms: string | string[],
+    lastTweetId: string
+  ): Promise<Tweet[]> {
+    let params: Object = {
       max_results: 100,
-    });
+    };
+
+    if (lastTweetId) {
+      params = {
+        ...params,
+        since_id: lastTweetId,
+      };
+    }
+
+    const query = searchParametersToQuery(terms);
+    const searchResponse = await this.userClient.v2.search(query, params);
+
     while (!searchResponse.done) {
-      await searchResponse.fetchNext();
+      await searchResponse.fetchNext(100);
     }
 
     return searchResponse.tweets;
@@ -116,7 +129,7 @@ export class TwitterAPI {
 
   // Get quote tweets of a tweet with ID
   async quoteTweetsForTweet(id: string): Promise<Tweet[]> {
-    const quoteTweetsResponse = await this.appOnlyClient.v2.quotes(id, {
+    const quoteTweetsResponse = await this.userClient.v2.quotes(id, {
       max_results: 100,
     });
 
@@ -189,6 +202,12 @@ export class TwitterAPI {
     );
 
     return responseObject.response;
+  }
+
+  async getCollection(collectionId: string) {
+    return await this.userClient.v1.get("collections/entries.json", {
+      id: collectionId,
+    });
   }
 
   // Update the name and description for a given collection
