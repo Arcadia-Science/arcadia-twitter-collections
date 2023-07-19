@@ -1,5 +1,11 @@
 # arcadia-twitter-collections
 
+## Update as of June 2023
+- Twitter decided to significantly change its API functionality and introduced a very steep pricing plan for its usage.
+- As of now, Filtered Streams are prohibitively expensive to use (available at the $5K/month plan) and Twitter collections are not available at all.
+- Because of this, we removed the reliance on Filtered Streams and rely solely on the search API. Quote tweets are also not used, because of its strict API rate limits and the inability to filter the quote tweets with `since_id`.
+- Twitter collections are replaced by the addition of a comma-separated string field on the Notion database. We use Notion here for its simplicity and because it offers an easy to edit UI. However, it can be easily replaced with your favorite database technology. s
+
 ## Goals of the project
 
 ### Context
