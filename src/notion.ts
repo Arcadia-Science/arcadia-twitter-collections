@@ -19,9 +19,16 @@ interface CollectionEntryProperties {
   Search: RichTextProperty;
   ID: RichTextProperty;
   URL: RichTextProperty;
+  Tweets: RichTextProperty;
 }
 
-type CollectionPropertyKeys = "Name" | "Description" | "Search" | "ID" | "URL";
+type CollectionPropertyKeys =
+  | "Name"
+  | "Description"
+  | "Search"
+  | "ID"
+  | "URL"
+  | "Tweets";
 
 export interface CollectionEntry {
   object: "page";
@@ -69,37 +76,64 @@ export class NotionAPI {
 
   // In Notion, every database entry is a page
   // This allows us to update the "Collection ID" property of a specific page/entry
+
+  async updatePage(pageId: string, properties: any) {
+    const response = await this.client.pages.update({
+      page_id: pageId,
+      properties: properties,
+    });
+    return response;
+  }
+
   async updateEntryCollectionId(
     pageId: string,
     collectionId: string,
     collectionUrl: string
   ): Promise<CollectionEntry> {
-    const response = await this.client.pages.update({
-      page_id: pageId,
-      properties: {
-        ID: {
-          rich_text: [
-            {
-              type: "text",
-              text: {
-                content: collectionId,
-              },
+    const properties = {
+      ID: {
+        rich_text: [
+          {
+            type: "text",
+            text: {
+              content: collectionId,
             },
-          ],
-        },
-        URL: {
-          rich_text: [
-            {
-              type: "text",
-              text: {
-                content: collectionUrl,
-              },
-            },
-          ],
-        },
+          },
+        ],
       },
-    });
+      URL: {
+        rich_text: [
+          {
+            type: "text",
+            text: {
+              content: collectionUrl,
+            },
+          },
+        ],
+      },
+    };
 
+    const response = await this.updatePage(pageId, properties);
+    return response as CollectionEntry;
+  }
+
+  async updateEntryTweets(pageId: string, tweets: string[]) {
+    const tweetsString = tweets.join(",");
+
+    const properties = {
+      Tweets: {
+        rich_text: [
+          {
+            type: "text",
+            text: {
+              content: tweetsString,
+            },
+          },
+        ],
+      },
+    };
+
+    const response = await this.updatePage(pageId, properties);
     return response as CollectionEntry;
   }
 }
