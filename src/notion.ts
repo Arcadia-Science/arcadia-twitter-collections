@@ -33,6 +33,7 @@ type CollectionPropertyKeys =
 export interface CollectionEntry {
   object: "page";
   id: string;
+  last_edited_time: string;
   properties: CollectionEntryProperties;
 }
 
