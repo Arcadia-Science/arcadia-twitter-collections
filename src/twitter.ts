@@ -134,7 +134,7 @@ export class TwitterAPI {
     });
 
     while (!quoteTweetsResponse.done) {
-      await quoteTweetsResponse.fetchNext();
+      await quoteTweetsResponse.fetchNext(100);
     }
 
     return quoteTweetsResponse.tweets;

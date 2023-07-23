@@ -47,6 +47,11 @@ const fetchTweetsForEntry = async (
     ""
   );
 
+  const earliestTweet = fetchedTweets.reduce(
+    (prev, curr) => (curr < prev ? curr : prev),
+    fetchedTweets[0]
+  );
+
   let tweets: Tweet[] = [];
   try {
     tweets = await twitter.searchTweets(searchParams.split(","), lastTweet);
@@ -54,19 +59,28 @@ const fetchTweetsForEntry = async (
     tweets = await twitter.searchTweets(searchParams.split(","), "");
   }
 
+  // Extreme jank alert: because Twitter has a very heavy rate-limit on quote tweets
+  // we'll introduce some randomness to the process with the hope that we can get most
+  // of the quote tweets. This focuses mostly on the first tweet in a given series of
+  // tweets because that is the most likely to get quote tweets.
+  if (earliestTweet) {
+    try {
+      // Only fetch quote tweets 20 percent of the time
+      if (Math.random() < 0.2) {
+        const quoteTweets = await twitter.quoteTweetsForTweet(earliestTweet);
+        tweets.push.apply(tweets, quoteTweets);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   if (tweets.length > 0) {
     const allTweets = [
       ...new Set([...fetchedTweets, ...tweets.map((tweet) => tweet.id)]),
     ];
-
     await notion.updateEntryTweets(entry.id, allTweets);
   }
-
-  // // For each tweet, get all quote tweets
-  // for (const tweet of tweets) {
-  //   const quoteTweets = await twitter.quoteTweetsForTweet(tweet.id);
-  //   tweetsToAdd.push.apply(tweetsToAdd, quoteTweets);
-  // }
 };
 
 const generateCollectionId = async (entry: CollectionEntry) => {
@@ -100,14 +114,13 @@ export const collectionCronJob = async () => {
 
     // If the collection ID exists, get tweets
     if (collectionId) {
-      if (isWithinLastTwoWeeks(entry.last_edited_time)) {
-        // If the search param is empty, do nothing
-        const collectionSearchParams = getRichTextValue(entry, "Search");
-        if (!collectionSearchParams) continue;
+      if (!isWithinLastTwoWeeks(entry.last_edited_time)) continue;
+      // If the search param is empty, do nothing
+      const collectionSearchParams = getRichTextValue(entry, "Search");
+      if (!collectionSearchParams) continue;
 
-        // Trigger a backfill
-        await fetchTweetsForEntry(entry, collectionId);
-      }
+      // Trigger a backfill
+      await fetchTweetsForEntry(entry, collectionId);
     } else {
       try {
         // If not create the collection
