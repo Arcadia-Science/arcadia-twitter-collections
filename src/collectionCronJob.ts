@@ -75,9 +75,22 @@ const fetchTweetsForEntry = async (
     }
   }
 
-  if (tweets.length > 0) {
+  // Keep tweets if they don't have the `referenced_tweets` field or
+  // if they have the `referenced_tweets` field and it doesn't contain type `retweeted'
+  const tweetsWithoutRetweets = tweets.filter(
+    (tweet) =>
+      !tweet.referenced_tweets ||
+      !tweet.referenced_tweets.some(
+        (referencedTweet: any) => referencedTweet.type === "retweeted"
+      )
+  );
+
+  if (tweetsWithoutRetweets.length > 0) {
     const allTweets = [
-      ...new Set([...fetchedTweets, ...tweets.map((tweet) => tweet.id)]),
+      ...new Set([
+        ...fetchedTweets,
+        ...tweetsWithoutRetweets.map((tweet) => tweet.id),
+      ]),
     ];
     await notion.updateEntryTweets(entry.id, allTweets);
   }

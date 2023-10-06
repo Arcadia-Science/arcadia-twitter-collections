@@ -13,6 +13,7 @@ const COLLECTION_DESCRIPTION_CHAR_LIMIT = 160;
 export interface Tweet {
   id: string;
   text: string;
+  referenced_tweets?: any;
 }
 
 export interface SearchResponse {
@@ -45,7 +46,7 @@ export const searchParametersToQuery = (terms: string | string[]) => {
     typeof terms === "string"
       ? parseQueryParams(terms.trim())
       : terms.map((term) => parseQueryParams(term.trim())).join(" OR ");
-  return `(${query}) -is:retweet`;
+  return `(${query})`;
 };
 
 // Collections "curate" endpoint expects changes in chunks of 100 additions/removals
@@ -108,6 +109,7 @@ export class TwitterAPI {
   ): Promise<Tweet[]> {
     let params: Object = {
       max_results: 100,
+      "tweet.fields": ["referenced_tweets"],
     };
 
     if (lastTweetId) {
@@ -142,7 +144,10 @@ export class TwitterAPI {
 
   // Get the tweet with a given ID (used for debugging)
   async getTweet(id: string): Promise<TweetV2SingleResult> {
-    return await this.appOnlyClient.v2.singleTweet(id);
+    const params: Object = {
+      "tweet.fields": ["referenced_tweets"],
+    };
+    return await this.userClient.v2.singleTweet(id, params);
   }
 
   // FilteredStream endpoints
