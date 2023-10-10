@@ -13,7 +13,10 @@ const COLLECTION_DESCRIPTION_CHAR_LIMIT = 160;
 export interface Tweet {
   id: string;
   text: string;
-  referenced_tweets?: any;
+  referenced_tweets?: {
+    type: string;
+    id: string;
+  }[];s
 }
 
 export interface SearchResponse {
