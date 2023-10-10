@@ -150,6 +150,14 @@ export class TwitterAPI {
     return await this.userClient.v2.singleTweet(id, params);
   }
 
+  // Get all the tweets with a given array of IDs (used for debugging)
+  async getTweets(ids: string[]) {
+    const params: Object = {
+      "tweet.fields": ["referenced_tweets"],
+    };
+    return await this.userClient.v2.tweets(ids, params);
+  }
+
   // FilteredStream endpoints
 
   // Open a connection to a FilteredStream but do not connect yet
