@@ -77,6 +77,8 @@ const fetchTweetsForEntry = async (
 
   // Keep tweets if they don't have the `referenced_tweets` field or
   // if they have the `referenced_tweets` field and it doesn't contain type `retweeted'
+  // Here, we manually filter out retweets because the Twitter API doesn't allow us to
+  // reliably do so. Even if the -retweet flag is set, the API occasionally returns retweets.
   const tweetsWithoutRetweets = tweets.filter(
     (tweet) =>
       !tweet.referenced_tweets ||
