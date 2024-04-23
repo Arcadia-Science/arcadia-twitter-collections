@@ -43,8 +43,7 @@ def get_tweets_for_entry(twitter, notion, entry, collection_id):
 
     try:
         tweets = twitter.search_tweets(query=search_query, last_tweet_id=last_tweet_id)
-    except Exception as e:
-        print(f"Error searching for tweets: {e}")
+    except Exception:
         tweets = twitter.search_tweets(query=search_query, last_tweet_id=None)
 
     # Extreme jank alert: because Twitter has a very heavy rate-limit on quote tweets
@@ -65,8 +64,8 @@ def get_tweets_for_entry(twitter, notion, entry, collection_id):
     tweets_without_retweets = filter_out_retweets(tweets)
 
     if tweets_without_retweets:
-        all_tweets = set(
-            entry_tweets + [tweet["id"] for tweet in tweets_without_retweets]
+        all_tweets = list(
+            set(entry_tweets + [str(tweet["id"]) for tweet in tweets_without_retweets])
         )
         update_entry_tweets(notion, entry, all_tweets)
 

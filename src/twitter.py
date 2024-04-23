@@ -34,7 +34,7 @@ class TwitterAPI:
                 break
 
             tweets.extend(fetched.data)
-            params["next_token"] = fetched.meta["next_token"]
+            params["next_token"] = fetched.meta.get("next_token", None)
 
             if params["next_token"] is None:
                 break
@@ -51,9 +51,9 @@ class TwitterAPI:
                 break
 
             tweets.extend(fetched.data)
-            params["next_token"] = fetched.meta["next_token"]
+            params["pagination_token"] = fetched.meta.get("next_token", None)
 
-            if params["next_token"] is None:
+            if params["pagination_token"] is None:
                 break
 
         return tweets

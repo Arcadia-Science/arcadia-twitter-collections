@@ -1,11 +1,9 @@
-import datetime
-import math
+from datetime import datetime, timedelta, timezone
 import random
-import time
 from urllib.parse import urlparse
 
-TWO_WEEKS_IN_MILLISECONDS = 14 * 24 * 60 * 60 * 1000
 RETWEET_STRING = "RT @"
+ID_LENGTH = 18
 
 
 def is_valid_http_url(text):
@@ -16,12 +14,13 @@ def is_valid_http_url(text):
         return False
 
 
-def is_within_last_two_weeks(timestamp):
-    current_date = datetime.datetime.now()
-    timestamp_date = datetime.datetime.fromisoformat(timestamp)
-
-    time_difference = (current_date - timestamp_date).total_seconds() * 1000
-    return time_difference < TWO_WEEKS_IN_MILLISECONDS
+def is_within_last_two_weeks(timestamp_str):
+    timestamp = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%fZ").replace(
+        tzinfo=timezone.utc
+    )
+    now = datetime.now(timezone.utc)
+    two_weeks_ago = now - timedelta(weeks=2)
+    return two_weeks_ago <= timestamp <= now
 
 
 def parse_query_params(text):
@@ -86,9 +85,8 @@ def generate_collection_id(entry):
         raise ValueError("Collection missing name, description, or search params.")
 
     # Make IDs look like Twitter IDs, this should be reasonably unique for our use-case
-    ID_LENGTH = 18  # Assuming the length to match Twitter ID length
-    random_part = math.ceil(random.random() * time.time())
-    return f"custom-{int(random_part):.{ID_LENGTH}d}".replace(".", "")
+    random_part = "".join(random.choices("0123456789", k=ID_LENGTH))
+    return f"custom-{random_part}"
 
 
 def dict_to_rich_text_obj(data_dict):
@@ -99,11 +97,7 @@ def dict_to_rich_text_obj(data_dict):
 
 
 def filter_out_retweets(tweets):
-    return [
-        tweet
-        for tweet in tweets
-        if not tweet["data"]["text"].startswith(RETWEET_STRING)
-    ]
+    return [tweet for tweet in tweets if not tweet["text"].startswith(RETWEET_STRING)]
 
 
 def update_entry_tweets(notion, entry, tweets):
