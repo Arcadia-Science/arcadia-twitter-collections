@@ -5,38 +5,25 @@ import random
 from notion import NotionAPI
 from twitter import TwitterAPI
 from utils import (
-    dict_to_rich_text_obj,
     filter_out_retweets,
     get_rich_text_value,
     generate_collection_id,
     is_within_last_two_weeks,
     search_params_to_query,
+    update_entry_collection_metadata,
+    update_entry_tweets,
 )
 
 load_dotenv()  # load environment variables from .env file
 
-TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
+ENVIRONMENT = os.getenv("ENVIRONMENT")
+COLLECTION_URL_PREFIX = os.getenv("COLLECTION_URL_PREFIX")
 NOTION_API_TOKEN = os.getenv("NOTION_API_TOKEN")
 NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
-COLLECTION_URL_PREFIX = os.getenv("COLLECTION_URL_PREFIX")
-
-twitter = TwitterAPI(TWITTER_BEARER_TOKEN)
-notion = NotionAPI(NOTION_API_TOKEN)
+TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
 
 
-def update_entry_tweets(entry, tweets):
-    tweets_string = tweets.join(",")
-    params = dict_to_rich_text_obj({"Tweets": tweets_string})
-    notion.update_page(entry["id"], params)
-
-
-def update_entry_collection_metadata(entry, collection_id):
-    collection_url = COLLECTION_URL_PREFIX + collection_id.replace("custom-", "")
-    params = dict_to_rich_text_obj({"ID": collection_id, "URL": collection_url})
-    notion.update_page(entry["id"], params)
-
-
-def get_tweets_for_entry(entry, collection_id):
+def get_tweets_for_entry(twitter, notion, entry, collection_id):
     if not collection_id:
         return
 
@@ -56,7 +43,8 @@ def get_tweets_for_entry(entry, collection_id):
 
     try:
         tweets = twitter.search_tweets(query=search_query, last_tweet_id=last_tweet_id)
-    except Exception:
+    except Exception as e:
+        print(f"Error searching for tweets: {e}")
         tweets = twitter.search_tweets(query=search_query, last_tweet_id=None)
 
     # Extreme jank alert: because Twitter has a very heavy rate-limit on quote tweets
@@ -80,27 +68,32 @@ def get_tweets_for_entry(entry, collection_id):
         all_tweets = set(
             entry_tweets + [tweet["id"] for tweet in tweets_without_retweets]
         )
-        update_entry_tweets(entry, all_tweets)
+        update_entry_tweets(notion, entry, all_tweets)
 
 
 def main():
-    # print(twitter.get_quote_tweets_for_tweet("1782472760377106836"))
+    twitter = TwitterAPI(TWITTER_BEARER_TOKEN, cache=ENVIRONMENT == "local")
+    notion = NotionAPI(NOTION_API_TOKEN)
+
     entries = notion.get_database_entries(NOTION_DATABASE_ID)
     for entry in entries:
         collectionId = get_rich_text_value(entry, "ID")
-
         if collectionId:  # Make sure there's a collection ID
-            if not is_within_last_two_weeks(entry.last_edited_time):
+            if not is_within_last_two_weeks(entry["last_edited_time"]):
                 continue
             search_params = get_rich_text_value(entry, "Search")
             if not search_params:
                 continue
 
-            get_tweets_for_entry(entry, collectionId)
+            get_tweets_for_entry(twitter, notion, entry, collectionId)
         else:  # If not create the collection
-            new_id = generate_collection_id(entry)
-            update_entry_collection_metadata(entry, new_id)
-            get_tweets_for_entry(entry, new_id)
+            try:
+                new_id = generate_collection_id(entry)
+                collection_url = COLLECTION_URL_PREFIX + new_id.replace("custom-", "")
+                update_entry_collection_metadata(notion, entry, new_id, collection_url)
+                get_tweets_for_entry(twitter, notion, entry, new_id)
+            except Exception as e:
+                print(f"Error creating collection on Notion: {e}")
 
 
 if __name__ == "__main__":

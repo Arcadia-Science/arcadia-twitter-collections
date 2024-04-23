@@ -22,6 +22,7 @@ jobs:
       - name: Execute script
         env:
           COLLECTION_URL_PREFIX: ${{ secrets.COLLECTION_URL_PREFIX }}
+          ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
           NOTION_API_TOKEN: ${{ secrets.NOTION_API_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}

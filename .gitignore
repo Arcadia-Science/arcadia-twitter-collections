@@ -8,3 +8,5 @@ dump.rdb
 .yarn/
 .pnp.cjs
 backup/
+
+*.sqlite

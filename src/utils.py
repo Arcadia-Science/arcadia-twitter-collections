@@ -98,11 +98,15 @@ def dict_to_rich_text_obj(data_dict):
 
 
 def filter_out_retweets(tweets):
-    return [
-        tweet
-        for tweet in tweets
-        if not tweet.get("referenced_tweets")
-        or all(
-            ref_tweet["type"] != "retweeted" for ref_tweet in tweet["referenced_tweets"]
-        )
-    ]
+    return [tweet for tweet in tweets if not tweet["data"]["text"].startswith("RT @")]
+
+
+def update_entry_tweets(notion, entry, tweets):
+    tweets_string = ",".join(tweets)
+    params = dict_to_rich_text_obj({"Tweets": tweets_string})
+    notion.update_page(entry["id"], params)
+
+
+def update_entry_collection_metadata(notion, entry, collection_id, collection_url):
+    params = dict_to_rich_text_obj({"ID": collection_id, "URL": collection_url})
+    notion.update_page(entry["id"], params)
