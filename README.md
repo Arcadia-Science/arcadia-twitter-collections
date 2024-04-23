@@ -1,6 +1,12 @@
 # arcadia-twitter-collections
 
+## Update as of April 2024
+
+- We have fully moved to a Python-based solution to leverage [Tweepy](https://docs.tweepy.org/en/latest/index.html) due to better support and maintenance.
+- Going forward, the cron job runs via GitHub actions.
+
 ## Update as of June 2023
+
 - Twitter decided to significantly change its API functionality and introduced a very steep pricing plan for its usage.
 - As of now, Filtered Streams are prohibitively expensive to use (available at the $5K/month plan) and Twitter collections are not available at all.
 - Because of this, we removed the reliance on Filtered Streams and rely solely on the search API. Quote tweets are also not used, because of its strict API rate limits and the inability to filter the quote tweets with `since_id`.
