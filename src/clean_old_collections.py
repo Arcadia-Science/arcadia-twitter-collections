@@ -14,6 +14,10 @@ TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
 
 
 def main():
+    """
+    This script cleans up old collections by removing retweets from the list of tweets.
+    """
+
     twitter = TwitterAPI(TWITTER_BEARER_TOKEN, cache=ENVIRONMENT == "local")
     notion = NotionAPI(NOTION_API_TOKEN)
 
