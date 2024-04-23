@@ -30,12 +30,11 @@ def main():
 
             if entry_tweets:
                 tweets = twitter.get_tweets(entry_tweets)
-                break
                 for tweet in tweets.data:
                     if tweet.text.startswith("RT @"):
                         entry_tweets.remove(str(tweet.id))
 
-                update_entry_tweets(entry, entry_tweets)
+                update_entry_tweets(notion, entry, entry_tweets)
 
 
 if __name__ == "__main__":
