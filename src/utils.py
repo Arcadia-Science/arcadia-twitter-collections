@@ -5,6 +5,7 @@ import time
 from urllib.parse import urlparse
 
 TWO_WEEKS_IN_MILLISECONDS = 14 * 24 * 60 * 60 * 1000
+RETWEET_STRING = "RT @"
 
 
 def is_valid_http_url(text):
@@ -98,7 +99,11 @@ def dict_to_rich_text_obj(data_dict):
 
 
 def filter_out_retweets(tweets):
-    return [tweet for tweet in tweets if not tweet["data"]["text"].startswith("RT @")]
+    return [
+        tweet
+        for tweet in tweets
+        if not tweet["data"]["text"].startswith(RETWEET_STRING)
+    ]
 
 
 def update_entry_tweets(notion, entry, tweets):

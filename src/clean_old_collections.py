@@ -3,7 +3,7 @@ import os
 
 from notion import NotionAPI
 from twitter import TwitterAPI
-from utils import get_rich_text_value, update_entry_tweets
+from utils import get_rich_text_value, update_entry_tweets, RETWEET_STRING
 
 load_dotenv()  # load environment variables from .env file
 
@@ -31,7 +31,7 @@ def main():
             if entry_tweets:
                 tweets = twitter.get_tweets(entry_tweets)
                 for tweet in tweets.data:
-                    if tweet.text.startswith("RT @"):
+                    if tweet.text.startswith(RETWEET_STRING):
                         entry_tweets.remove(str(tweet.id))
 
                 update_entry_tweets(notion, entry, entry_tweets)
