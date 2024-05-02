@@ -2,7 +2,7 @@ name: Run Twitter collections cron job
 
 on:
   schedule:
-    - cron: "0 * * * *" # Run it every hour
+    - cron: "0 */2 * * *" # Run it every 2 hours
   workflow_dispatch:
 
 jobs:
