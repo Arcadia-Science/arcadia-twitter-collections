@@ -53,7 +53,7 @@ def get_tweets_for_entry(twitter, notion, entry, collection_id):
     if earliest_tweet_id:
         try:
             # Only fetch quote tweets 20 percent of the time
-            if random.random() < 1:
+            if random.random() < 0.2:
                 quote_tweets = twitter.get_quote_tweets_for_tweet(earliest_tweet_id)
                 tweets.extend(quote_tweets)
         except Exception as err:
@@ -80,8 +80,6 @@ def main():
     for entry in entries:
         collection_id = get_rich_text_value(entry, "ID")
         if collection_id:  # Make sure there's a collection ID
-            if collection_id != "custom-5966848493540000000":
-                continue
             if not is_within_last_two_weeks(entry["last_edited_time"]):
                 continue
             search_params = get_rich_text_value(entry, "Search")
