@@ -76,15 +76,15 @@ def main():
 
     entries = notion.get_database_entries(NOTION_DATABASE_ID)
     for entry in entries:
-        collectionId = get_rich_text_value(entry, "ID")
-        if collectionId:  # Make sure there's a collection ID
+        collection_id = get_rich_text_value(entry, "ID")
+        if collection_id:  # Make sure there's a collection ID
             if not is_within_last_two_weeks(entry["last_edited_time"]):
                 continue
             search_params = get_rich_text_value(entry, "Search")
             if not search_params:
                 continue
 
-            get_tweets_for_entry(twitter, notion, entry, collectionId)
+            get_tweets_for_entry(twitter, notion, entry, collection_id)
         else:  # If not create the collection
             try:
                 new_id = generate_collection_id(entry)
