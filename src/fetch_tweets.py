@@ -7,17 +7,14 @@ from twitter import TwitterAPI
 from utils import (
     filter_out_retweets,
     get_rich_text_value,
-    generate_collection_id,
     is_within_last_two_weeks,
     search_params_to_query,
-    update_entry_collection_metadata,
     update_entry_tweets,
 )
 
 load_dotenv()  # load environment variables from .env file
 
 ENVIRONMENT = os.getenv("ENVIRONMENT")
-COLLECTION_URL_PREFIX = os.getenv("COLLECTION_URL_PREFIX")
 NOTION_API_TOKEN = os.getenv("NOTION_API_TOKEN")
 NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
 TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
@@ -87,14 +84,6 @@ def main():
                 continue
 
             get_tweets_for_entry(twitter, notion, entry, collection_id)
-        else:  # If not create the collection
-            try:
-                new_id = generate_collection_id(entry)
-                collection_url = COLLECTION_URL_PREFIX + new_id.replace("custom-", "")
-                update_entry_collection_metadata(notion, entry, new_id, collection_url)
-                get_tweets_for_entry(twitter, notion, entry, new_id)
-            except Exception as e:
-                print(f"Error creating collection on Notion: {e}")
 
 
 if __name__ == "__main__":

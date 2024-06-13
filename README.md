@@ -1,5 +1,9 @@
 # arcadia-twitter-collections
 
+## Update as of June 2024
+
+- We separated the singular cron job to multiple cron jobs to better deal with different rate limits. Collection creation (that happens outside the Twitter context) is run every 5 minutes. Fetching tweets per collection runs every 2 hours
+
 ## Update as of April 2024
 
 - We have fully moved to a Python-based solution to leverage [Tweepy](https://docs.tweepy.org/en/latest/index.html) due to better support and maintenance.
@@ -32,7 +36,7 @@
 
 To fulfill these goals, this repo implements two services:
 
-- A [periodic job](https://github.com/Arcadia-Science/arcadia-twitter-collections/blob/main/src/main.py) that sets up the [Twitter collections](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/curate-a-collection/overview/about_collections). This job also backfills the tweets for the collection using the [Twitter API](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/api-reference/get-search-tweets). The job runs via GitHub Actions actions every hour.
+- Two periodic jobs that set up the [Twitter collections](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/curate-a-collection/overview/about_collections). This job also backfills the tweets for the collection using the [Twitter API](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/api-reference/get-search-tweets). The job runs via GitHub Actions actions every hour.
 
 The configuration of what collections to create and what search terms to use are managed in a no-code way in [Notion](https://developers.notion.com/docs/getting-started).
 
@@ -71,7 +75,10 @@ Install packages using pip. We use pip in addition to conda, to not duplicate pa
 pip install -r requirements.txt
 ```
 
-Once the installation is complete, you can run the job with `python src/main.py`.
+Once the installation is complete, you can run:
+
+- The collection creation job with `python src/create_collections.py`.
+- The tweet fetching job with `python src/fetch_tweets.py`.
 
 ## Using Notion as the database
 
