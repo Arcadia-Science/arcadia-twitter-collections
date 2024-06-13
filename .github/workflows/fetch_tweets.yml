@@ -1,4 +1,4 @@
-name: Run Twitter collections cron job
+name: Fetch tweets cron job
 
 on:
   schedule:
@@ -21,9 +21,8 @@ jobs:
           pip install -r requirements.txt
       - name: Execute script
         env:
-          COLLECTION_URL_PREFIX: ${{ secrets.COLLECTION_URL_PREFIX }}
           ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
           NOTION_API_TOKEN: ${{ secrets.NOTION_API_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
-        run: python src/main.py
+        run: python src/fetch_tweets.py
