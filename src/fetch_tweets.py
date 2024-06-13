@@ -6,7 +6,8 @@ from notion import NotionAPI
 from twitter import TwitterAPI
 from utils import (
     calculate_priority,
-    filter_out_retweets,
+    get_entry,
+    get_entry_tweets,
     get_rich_text_value,
     search_params_to_query,
     update_entry_tweets,
@@ -25,48 +26,25 @@ def get_tweets_for_entry(twitter, notion, collection_id):
         return
 
     # Re-fetch the entry to make sure it's up-to-date
-    entries = notion.get_database_entries(NOTION_DATABASE_ID)
-    entry = next(
-        (
-            entry
-            for entry in entries
-            if get_rich_text_value(entry, "ID") == collection_id
-        ),
-        None,
-    )
+    entry = get_entry(notion, collection_id)
 
     if entry is None:
         return
 
     search_params = get_rich_text_value(entry, "Search")
-    if not search_params:
-        return
     search_query = search_params_to_query(search_params.split(","))
 
-    entry_tweets = [
-        tweet.strip()
-        for tweet in get_rich_text_value(entry, "Tweets").split(",")
-        if tweet.strip()
-    ]
-
-    last_tweet_id = max(entry_tweets) if entry_tweets else None
+    og_tweets = get_entry_tweets(entry)
+    last_tweet_id = max(og_tweets) if og_tweets else None
 
     try:
-        tweets = twitter.search_tweets(query=search_query, last_tweet_id=last_tweet_id)
-    except Exception:
-        tweets = twitter.search_tweets(query=search_query, last_tweet_id=None)
-
-    # Here, we manually filter out retweets because the Twitter API doesn't allow us to
-    # reliably do so. Even if the -retweet flag is set, the API occasionally returns retweets.
-    tweets_without_retweets = filter_out_retweets(tweets)
-
-    if tweets_without_retweets:
-        all_tweets = list(
-            set(entry_tweets + [str(tweet["id"]) for tweet in tweets_without_retweets])
+        new_tweets = twitter.search_tweets(
+            query=search_query, last_tweet_id=last_tweet_id
         )
+    except Exception:
+        new_tweets = twitter.search_tweets(query=search_query, last_tweet_id=None)
 
-        if sorted(entry_tweets) != sorted(all_tweets):
-            update_entry_tweets(notion, entry, all_tweets)
+    update_entry_tweets(notion, entry, og_tweets, new_tweets)
 
 
 def main():

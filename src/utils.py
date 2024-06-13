@@ -1,10 +1,12 @@
 from datetime import datetime, timedelta, timezone
 import math
+import os
 import random
 from urllib.parse import urlparse
 
-RETWEET_STRING = "RT @"
 ID_LENGTH = 18
+NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
+RETWEET_STRING = "RT @"
 
 
 def is_valid_http_url(text):
@@ -111,12 +113,38 @@ def filter_out_retweets(tweets):
     return [tweet for tweet in tweets if not tweet["text"].startswith(RETWEET_STRING)]
 
 
-def update_entry_tweets(notion, entry, tweets):
-    tweets_string = ",".join(tweets)
-    params = dict_to_rich_text_obj({"Tweets": tweets_string})
-    notion.update_page(entry["id"], params)
+def update_entry_tweets(notion, entry, og_tweets, new_tweets):
+    # Here, we manually filter out retweets because the Twitter API doesn't allow us to
+    # reliably do so. Even if the -retweet flag is set, the API occasionally returns retweets.
+    tweets_without_retweets = filter_out_retweets(new_tweets)
+
+    if tweets_without_retweets:
+        all_tweets = list(
+            set(og_tweets + [str(tweet["id"]) for tweet in tweets_without_retweets])
+        )
+
+        if sorted(og_tweets) != sorted(all_tweets):
+            tweets_string = ",".join(new_tweets)
+            params = dict_to_rich_text_obj({"Tweets": tweets_string})
+            notion.update_page(entry["id"], params)
 
 
 def update_entry_collection_metadata(notion, entry, collection_id, collection_url):
     params = dict_to_rich_text_obj({"ID": collection_id, "URL": collection_url})
     notion.update_page(entry["id"], params)
+
+
+def get_entry(notion, collection_id):
+    entries = notion.get_database_entries(NOTION_DATABASE_ID)
+    return next(
+        (entry for entry in entries if get_title_value(entry, "ID") == collection_id),
+        None,
+    )
+
+
+def get_entry_tweets(entry):
+    return [
+        tweet.strip()
+        for tweet in get_rich_text_value(entry, "Tweets").split(",")
+        if tweet.strip()
+    ]
