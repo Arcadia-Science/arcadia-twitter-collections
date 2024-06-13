@@ -124,7 +124,7 @@ def update_entry_tweets(notion, entry, og_tweets, new_tweets):
         )
 
         if sorted(og_tweets) != sorted(all_tweets):
-            tweets_string = ",".join(new_tweets)
+            tweets_string = ",".join(all_tweets)
             params = dict_to_rich_text_obj({"Tweets": tweets_string})
             notion.update_page(entry["id"], params)
 
