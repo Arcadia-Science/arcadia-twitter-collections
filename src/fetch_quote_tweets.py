@@ -8,6 +8,7 @@ from utils import (
     calculate_priority,
     filter_out_retweets,
     get_rich_text_value,
+    is_within_last_two_weeks,
     search_params_to_query,
     update_entry_tweets,
 )
@@ -20,7 +21,7 @@ NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
 TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
 
 
-def get_tweets_for_entry(twitter, notion, collection_id):
+def get_quote_tweets(twitter, notion, collection_id):
     if not collection_id:
         return
 
@@ -38,23 +39,16 @@ def get_tweets_for_entry(twitter, notion, collection_id):
     if entry is None:
         return
 
-    search_params = get_rich_text_value(entry, "Search")
-    if not search_params:
-        return
-    search_query = search_params_to_query(search_params.split(","))
-
     entry_tweets = [
         tweet.strip()
         for tweet in get_rich_text_value(entry, "Tweets").split(",")
         if tweet.strip()
     ]
 
-    last_tweet_id = max(entry_tweets) if entry_tweets else None
-
-    try:
-        tweets = twitter.search_tweets(query=search_query, last_tweet_id=last_tweet_id)
-    except Exception:
-        tweets = twitter.search_tweets(query=search_query, last_tweet_id=None)
+    tweets = []
+    for tweet_id in entry_tweets:
+        quote_tweets = twitter.get_quote_tweets_for_tweet(tweet_id)
+        tweets.extend(quote_tweets)
 
     # Here, we manually filter out retweets because the Twitter API doesn't allow us to
     # reliably do so. Even if the -retweet flag is set, the API occasionally returns retweets.
@@ -88,11 +82,7 @@ def main():
             # 2 years old.
             if random.random() > priority:
                 continue
-            search_params = get_rich_text_value(entry, "Search")
-            if not search_params:
-                continue
-
-            get_tweets_for_entry(twitter, notion, collection_id)
+            get_quote_tweets(twitter, notion, collection_id)
 
 
 if __name__ == "__main__":

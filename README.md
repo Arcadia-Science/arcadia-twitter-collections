@@ -2,7 +2,7 @@
 
 ## Update as of June 2024
 
-- We separated the singular cron job to multiple cron jobs to better deal with different rate limits. Collection creation (that happens outside the Twitter context) is run every 5 minutes. Fetching tweets per collection runs every 2 hours
+- We separated the singular cron job to multiple cron jobs to better deal with different rate limits. Collection creation (that happens outside the Twitter context) is run every 5 minutes. Fetching tweets per collection runs every 2 hours. Fetching quote tweets per tweet runs every 24 hours. The frequency depends on rate-limiting by Twitter.
 
 ## Update as of April 2024
 
@@ -36,7 +36,7 @@
 
 To fulfill these goals, this repo implements two services:
 
-- Two periodic jobs that set up the [Twitter collections](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/curate-a-collection/overview/about_collections). This job also backfills the tweets for the collection using the [Twitter API](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/api-reference/get-search-tweets). The job runs via GitHub Actions actions every hour.
+- Three periodic jobs that set up the [Twitter collections](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/curate-a-collection/overview/about_collections). This job also backfills the tweets for the collection using the [Twitter API](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/api-reference/get-search-tweets). The job runs via GitHub Actions actions every hour.
 
 The configuration of what collections to create and what search terms to use are managed in a no-code way in [Notion](https://developers.notion.com/docs/getting-started).
 
@@ -79,6 +79,7 @@ Once the installation is complete, you can run:
 
 - The collection creation job with `python src/create_collections.py`.
 - The tweet fetching job with `python src/fetch_tweets.py`.
+- The quote tweet fetching job with `python src/fetch_quote_tweets.py`.
 
 ## Using Notion as the database
 

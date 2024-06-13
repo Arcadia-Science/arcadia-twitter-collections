@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import math
 import random
 from urllib.parse import urlparse
 
@@ -14,13 +15,23 @@ def is_valid_http_url(text):
         return False
 
 
-def is_within_last_two_weeks(timestamp_str):
-    timestamp = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%fZ").replace(
+def parse_collection_timestamp(timestamp_str):
+    return datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%fZ").replace(
         tzinfo=timezone.utc
     )
+
+
+def is_within_last_two_weeks(timestamp_str):
+    timestamp = parse_collection_timestamp(timestamp_str)
     now = datetime.now(timezone.utc)
     two_weeks_ago = now - timedelta(weeks=2)
     return two_weeks_ago <= timestamp <= now
+
+
+def calculate_priority(timestamp_str, decay_rate=0.005):
+    timestamp = parse_collection_timestamp(timestamp_str)
+    now = datetime.now(timezone.utc)
+    return math.exp(-decay_rate * (now - timestamp).days)
 
 
 def parse_query_params(text):
