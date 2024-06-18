@@ -25,7 +25,7 @@ def get_quote_tweets(twitter, notion, collection_id):
         return
 
     # Re-fetch the entry to make sure it's up-to-date
-    entry = get_entry(notion, collection_id)
+    entry = get_entry(notion, NOTION_DATABASE_ID, collection_id)
 
     if entry is None:
         return
@@ -58,6 +58,7 @@ def main():
             # 2 years old.
             if random.random() > priority:
                 continue
+            print("Fetching quote tweets for:", entry["id"])
             get_quote_tweets(twitter, notion, collection_id)
 
 
