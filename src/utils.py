@@ -127,6 +127,7 @@ def update_entry_tweets(notion, entry, og_tweets, new_tweets):
             tweets_string = ",".join(all_tweets)
             params = dict_to_rich_text_obj({"Tweets": tweets_string})
             notion.update_page(entry["id"], params)
+            print("Updated tweets for:", entry["id"])
 
 
 def update_entry_collection_metadata(notion, entry, collection_id, collection_url):
@@ -134,10 +135,14 @@ def update_entry_collection_metadata(notion, entry, collection_id, collection_ur
     notion.update_page(entry["id"], params)
 
 
-def get_entry(notion, collection_id):
-    entries = notion.get_database_entries(NOTION_DATABASE_ID)
+def get_entry(notion, database_id, collection_id):
+    entries = notion.get_database_entries(database_id)
     return next(
-        (entry for entry in entries if get_title_value(entry, "ID") == collection_id),
+        (
+            entry
+            for entry in entries
+            if get_rich_text_value(entry, "ID") == collection_id
+        ),
         None,
     )
 

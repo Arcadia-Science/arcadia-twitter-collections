@@ -26,7 +26,7 @@ def get_tweets_for_entry(twitter, notion, collection_id):
         return
 
     # Re-fetch the entry to make sure it's up-to-date
-    entry = get_entry(notion, collection_id)
+    entry = get_entry(notion, NOTION_DATABASE_ID, collection_id)
 
     if entry is None:
         return
@@ -56,6 +56,7 @@ def main():
         (entry, calculate_priority(entry["created_time"])) for entry in entries
     ]
     entries_with_priority.sort(key=lambda x: x[1], reverse=True)
+
     for entry, priority in entries_with_priority:
         collection_id = get_rich_text_value(entry, "ID")
         if collection_id:
@@ -69,7 +70,7 @@ def main():
             search_params = get_rich_text_value(entry, "Search")
             if not search_params:
                 continue
-
+            print("Fetching tweets for:", entry["id"])
             get_tweets_for_entry(twitter, notion, collection_id)
 
 
