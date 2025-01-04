@@ -2,36 +2,45 @@ from dotenv import load_dotenv
 import os
 import random
 
-from notion import NotionAPI
+from airtable import AirtableAPI
 from twitter import TwitterAPI
 from utils import (
     calculate_priority,
     get_entry,
     get_entry_tweets,
-    get_rich_text_value,
+    get_field_value,
     search_params_to_query,
     update_entry_tweets,
 )
 
-load_dotenv()  # load environment variables from .env file
+load_dotenv()
 
 ENVIRONMENT = os.getenv("ENVIRONMENT")
-NOTION_API_TOKEN = os.getenv("NOTION_API_TOKEN")
-NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
+AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
+AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
+AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME")
 TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
 
 
-def get_tweets_for_entry(twitter, notion, collection_id):
+def get_tweets_for_entry(twitter, airtable, collection_id):
+    """
+    Fetch tweets for a specific collection based on its search parameters.
+
+    Args:
+        twitter: TwitterAPI instance
+        airtable: AirtableAPI instance
+        collection_id: ID of the collection to fetch tweets for
+    """
     if not collection_id:
         return
 
     # Re-fetch the entry to make sure it's up-to-date
-    entry = get_entry(notion, NOTION_DATABASE_ID, collection_id)
+    entry = get_entry(airtable, collection_id)
 
     if entry is None:
         return
 
-    search_params = get_rich_text_value(entry, "Search")
+    search_params = get_field_value(entry, "Search")
     search_query = search_params_to_query(search_params.split(","))
 
     og_tweets = get_entry_tweets(entry)
@@ -39,39 +48,48 @@ def get_tweets_for_entry(twitter, notion, collection_id):
 
     try:
         new_tweets = twitter.search_tweets(
-            query=search_query, last_tweet_id=last_tweet_id
+            query=search_query,
+            last_tweet_id=last_tweet_id
         )
-    except Exception:
+    except Exception as e:
+        print(f"Error searching tweets: {e}")
         new_tweets = twitter.search_tweets(query=search_query, last_tweet_id=None)
 
-    update_entry_tweets(notion, entry, og_tweets, new_tweets)
+    update_entry_tweets(airtable, entry, og_tweets, new_tweets)
 
 
 def main():
+    # Initialize API clients
     twitter = TwitterAPI(TWITTER_BEARER_TOKEN, cache=ENVIRONMENT == "local")
-    notion = NotionAPI(NOTION_API_TOKEN)
+    airtable = AirtableAPI(
+        api_key=AIRTABLE_API_KEY,
+        base_id=AIRTABLE_BASE_ID,
+        table_name=AIRTABLE_TABLE_NAME
+    )
 
-    entries = notion.get_database_entries(NOTION_DATABASE_ID)
+    # Get all entries and calculate their priorities
+    entries = airtable.get_database_entries()
+
+    # createdTime is returned by default in Airtable response -- it's not a field
     entries_with_priority = [
-        (entry, calculate_priority(entry["created_time"])) for entry in entries
+        (entry, calculate_priority(entry['createdTime'])) for entry in entries
     ]
     entries_with_priority.sort(key=lambda x: x[1], reverse=True)
 
+    # Process entries based on priority
     for entry, priority in entries_with_priority:
-        collection_id = get_rich_text_value(entry, "ID")
+        collection_id = get_field_value(entry, "ID")
         if collection_id:
-            # Priority represents recency in a decaying fashion. Something that is just created has
-            # a priority of 1. Something that has been created 2 years ago, will have a priority of
-            # close to 0. The priority dictates the frequency of fetching tweets. So, something that
-            # is just created will have a higher chance of fetching tweets than something that is
-            # 2 years old.
+            # Skip based on priority (newer entries have higher chance of being processed)
             if random.random() > priority:
                 continue
-            search_params = get_rich_text_value(entry, "Search")
+
+            search_params = get_field_value(entry, "Search")
             if not search_params:
                 continue
-            print("Fetching tweets for:", entry["id"])
-            get_tweets_for_entry(twitter, notion, collection_id)
+
+            print(f"Fetching tweets for: {entry['id']} (priority: {priority:.2f})")
+            get_tweets_for_entry(twitter, airtable, collection_id)
 
 
 if __name__ == "__main__":
