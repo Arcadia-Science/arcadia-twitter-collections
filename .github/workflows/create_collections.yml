@@ -22,6 +22,7 @@ jobs:
       - name: Execute script
         env:
           COLLECTION_URL_PREFIX: ${{ secrets.COLLECTION_URL_PREFIX }}
-          NOTION_API_TOKEN: ${{ secrets.NOTION_API_TOKEN }}
-          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          AIRTABLE_TABLE_NAME: ${{ secrets.AIRTABLE_TABLE_NAME }}
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_API_KEY }}
         run: python src/create_collections.py

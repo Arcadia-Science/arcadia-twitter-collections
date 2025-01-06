@@ -22,7 +22,8 @@ jobs:
       - name: Execute script
         env:
           ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
-          NOTION_API_TOKEN: ${{ secrets.NOTION_API_TOKEN }}
-          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
+          AIRTABLE_API_KEY: ${{ AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ AIRTABLE_BASE_ID }}
+          AIRTABLE_TABLE_NAME: ${{ AIRTABLE_TABLE_NAME }}
         run: python src/fetch_quote_tweets.py
