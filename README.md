@@ -80,7 +80,7 @@ AIRTABLE_BASE_ID=
 # The ID or name of the table that holds your Twitter collections
 AIRTABLE_TABLE_NAME=
 
-COLLECTION_URL_PREFIX=https://twitter.com/ArcadiaScience/timelines/
+COLLECTION_URL_PREFIX=https://publishing-tools.arcadiascience.com/twitter/
 ```
 
 You can get the relevant environment variables through the [Twitter developer dashboard](https://developer.twitter.com/en/portal/dashboard). Note, this repo uses Twitter API v2.
