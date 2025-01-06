@@ -1,5 +1,11 @@
 # arcadia-twitter-collections
 
+## Update as of January 2025
+- We have transitioned to using Airtable to hold Twitter collections rather than Notion:
+  - As part of Arcadia's move to PubPub Platform, much of each pub's metadata will be stored in Airtable to make sure that our internal systems are not duplicating information on PubPub, reducing errors. Generating and storing Twitter collections on Airtable allows it to automatically pull into PubPub.
+  - Airtable's structure is simpler than Notion's, allowing some streamlining of the scripts in this repo.
+  - `create_collections.yml` can now be triggered as a `repository_dispatch` event, so we don't need to run a cron every five minutes.
+
 ## Update as of June 2024
 
 - We separated the singular cron job to multiple cron jobs to better deal with different rate limits. Collection creation (that happens outside the Twitter context) is run every 5 minutes. Fetching tweets per collection runs every 2 hours. Fetching quote tweets per tweet runs every 24 hours. The frequency depends on rate-limiting by Twitter.
