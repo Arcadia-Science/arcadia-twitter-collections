@@ -104,7 +104,7 @@ def update_entry_tweets(airtable, entry: Dict, og_tweets: List[str], new_tweets=
         if sorted(og_tweets) != sorted(all_tweets):
             tweets_string = ",".join(all_tweets)
             airtable.update_page(entry["id"], {"Tweets": tweets_string})
-            print("Updated tweets for:", entry["id"])
+            print("Updated tweets for:", get_field_value(entry, "Description"))
 
 
 def update_entry_collection_metadata(airtable, entry: Dict, collection_id: str,

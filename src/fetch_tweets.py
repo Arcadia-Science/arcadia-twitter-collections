@@ -25,11 +25,6 @@ TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
 def get_tweets_for_entry(twitter, airtable, collection_id):
     """
     Fetch tweets for a specific collection based on its search parameters.
-
-    Args:
-        twitter: TwitterAPI instance
-        airtable: AirtableAPI instance
-        collection_id: ID of the collection to fetch tweets for
     """
     if not collection_id:
         return
@@ -51,11 +46,11 @@ def get_tweets_for_entry(twitter, airtable, collection_id):
             query=search_query,
             last_tweet_id=last_tweet_id
         )
-    except Exception as e:
-        print(f"Error searching tweets: {e}")
+    except Exception:
         new_tweets = twitter.search_tweets(query=search_query, last_tweet_id=None)
 
-    update_entry_tweets(airtable, entry, og_tweets, new_tweets)
+    if new_tweets:
+        update_entry_tweets(airtable, entry, og_tweets, new_tweets)
 
 
 def main():
@@ -70,9 +65,9 @@ def main():
     # Get all entries and calculate their priorities
     entries = airtable.get_database_entries()
 
-    # createdTime is returned by default in Airtable response -- it's not a field
+    # Need to use manual 'Created' field rather than createdTime because old entries were migrated
     entries_with_priority = [
-        (entry, calculate_priority(entry['createdTime'])) for entry in entries
+        (entry, calculate_priority(get_field_value(entry,'Created date'))) for entry in entries
     ]
     entries_with_priority.sort(key=lambda x: x[1], reverse=True)
 
@@ -88,7 +83,7 @@ def main():
             if not search_params:
                 continue
 
-            print(f"Fetching tweets for: {entry['id']} (priority: {priority:.2f})")
+            print(f"Fetching tweets for: {get_field_value(entry, "Description")} (priority: {priority:.2f})")
             get_tweets_for_entry(twitter, airtable, collection_id)
 
 

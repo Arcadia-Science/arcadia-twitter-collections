@@ -1,10 +1,8 @@
 name: Create Twitter collections dispatch
 
 on:
-  repository_dispatch:
-    # This will automatically trigger through Airtable when we need a new collection
-    types: [create_new_twitter_collection]
-    # Keeping this here in case we want to manually run it out of order
+  schedule:
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 jobs:

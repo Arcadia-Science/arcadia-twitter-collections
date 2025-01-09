@@ -68,7 +68,7 @@ def main():
     # Get all entries and calculate their priorities
     entries = airtable.get_database_entries()
     entries_with_priority = [
-        (entry, calculate_priority(entry['createdTime'])) for entry in entries
+        (entry, calculate_priority(get_field_value(entry, "Created date"))) for entry in entries
     ]
     entries_with_priority.sort(key=lambda x: x[1], reverse=True)
 
@@ -80,7 +80,7 @@ def main():
             if random.random() > priority:
                 continue
 
-            print(f"Fetching quote tweets for: {entry['id']} (priority: {priority:.2f})")
+            print(f"Fetching quote tweets for: {get_field_value(entry, "Description")} (priority: {priority:.2f})")
             get_quote_tweets(twitter, airtable, collection_id)
 
 
