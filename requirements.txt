@@ -4,3 +4,4 @@ requests-cache==1.2.0
 tweepy==4.14.0
 
 pyairtable~=3.0.1
+pytest>=8.3.4

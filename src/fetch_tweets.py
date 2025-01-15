@@ -29,9 +29,7 @@ def get_tweets_for_entry(twitter, airtable, collection_id):
     if not collection_id:
         return
 
-    # Re-fetch the entry to make sure it's up-to-date
     entry = get_entry(airtable, collection_id)
-
     if entry is None:
         return
 
@@ -39,18 +37,25 @@ def get_tweets_for_entry(twitter, airtable, collection_id):
     search_query = search_params_to_query(search_params.split(","))
 
     og_tweets = get_entry_tweets(entry)
+    print(f"Found {len(og_tweets)} existing tweets")
+
     last_tweet_id = max(og_tweets) if og_tweets else None
 
     try:
+        print("Trying search with last_tweet_id...")
         new_tweets = twitter.search_tweets(
             query=search_query,
             last_tweet_id=last_tweet_id
         )
     except Exception:
+        print("Trying search without last_tweet_id...")
         new_tweets = twitter.search_tweets(query=search_query, last_tweet_id=None)
 
     if new_tweets:
+        print(f"Found {len(new_tweets)} new tweets")
         update_entry_tweets(airtable, entry, og_tweets, new_tweets)
+    else:
+        print("No new tweets found")
 
 
 def main():
