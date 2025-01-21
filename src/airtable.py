@@ -42,33 +42,3 @@ class AirtableAPI:
         except Exception as e:
             print(f"Error updating record in Airtable: {e}")
             return None
-
-    def get_record(self, record_id: str) -> Optional[Dict]:
-        """Get a specific record by ID.
-
-        Args:
-            record_id: ID of record to retrieve
-
-        Returns:
-            Record dictionary or None if not found
-        """
-        try:
-            return self.table.get(record_id, use_field_ids=True)
-        except Exception as e:
-            print(f"Error fetching record from Airtable: {e}")
-            return None
-
-    def create_record(self, fields: Dict) -> Optional[Dict]:
-        """Create a new record in Airtable.
-
-        Args:
-            fields: Dictionary of field values for the new record
-
-        Returns:
-            Created record dictionary or None if creation failed
-        """
-        try:
-            return self.table.create(fields)
-        except Exception as e:
-            print(f"Error creating record in Airtable: {e}")
-            return None
