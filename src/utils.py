@@ -31,7 +31,11 @@ def is_within_last_two_weeks(timestamp_str: str) -> bool:
 
 
 def calculate_priority(timestamp_str: str, decay_rate: float = 0.005) -> float:
-    """Calculate priority based on age with exponential decay."""
+    """Priority represents recency in a decaying fashion. Something that is just created has
+    a priority of 1. Something that has been created 2 years ago, will have a priority of
+    close to 0. The priority dictates the frequency of fetching tweets. So, something that
+    is just created will have a higher chance of fetching tweets than something that is
+    2 years old."""
     timestamp = parse_collection_timestamp(timestamp_str)
     now = datetime.now(timezone.utc)
     return math.exp(-decay_rate * (now - timestamp).days)
@@ -62,7 +66,6 @@ def search_params_to_query(terms: Union[str, List[str]]) -> str:
 
 def get_field_value(entry: Dict, field_name: str) -> str:
     """Get a field value from an Airtable record.
-    Replaces both get_title_value and get_rich_text_value from Notion.
     """
     try:
         return str(entry['fields'].get(field_name, '')).strip()
