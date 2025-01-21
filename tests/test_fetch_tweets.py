@@ -1,3 +1,6 @@
+from src.field_constants import Fields
+
+
 def test_get_tweets_for_entry(mock_apis):
     twitter, airtable, entry = mock_apis
     from fetch_tweets import get_tweets_for_entry
@@ -22,7 +25,7 @@ def test_get_tweets_for_entry(mock_apis):
     assert len(update_calls) > 0
     actual_call = update_calls[0]
     actual_id = actual_call[0][0]
-    actual_tweets = set(actual_call[0][1]['Tweets'].split(','))
+    actual_tweets = set(actual_call[0][1][Fields.TWEETS].split(','))
     expected_tweets = {'1734567890123456789', '1734567890123456790', '1734567890123456791'}
     assert actual_id == 'rec123'
     assert actual_tweets == expected_tweets
@@ -48,7 +51,7 @@ def test_get_tweets_for_entry_error_handling(mock_apis):
     assert len(update_calls) > 0
     actual_call = update_calls[0]
     actual_id = actual_call[0][0]
-    actual_tweets = set(actual_call[0][1]['Tweets'].split(','))
+    actual_tweets = set(actual_call[0][1][Fields.TWEETS].split(','))
     expected_tweets = {'1734567890123456789', '1734567890123456790', '1734567890123456792'}
     assert actual_id == 'rec123'
     assert actual_tweets == expected_tweets

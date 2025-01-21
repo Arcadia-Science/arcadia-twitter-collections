@@ -21,7 +21,7 @@ class AirtableAPI:
             List of record dictionaries containing fields and metadata
         """
         try:
-            return self.table.all()
+            return self.table.all(use_field_ids=True)
         except Exception as e:
             print(f"Error fetching entries from Airtable: {e}")
             return []
@@ -53,7 +53,7 @@ class AirtableAPI:
             Record dictionary or None if not found
         """
         try:
-            return self.table.get(record_id)
+            return self.table.get(record_id, use_field_ids=True)
         except Exception as e:
             print(f"Error fetching record from Airtable: {e}")
             return None

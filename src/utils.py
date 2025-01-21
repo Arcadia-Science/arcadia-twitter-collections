@@ -4,6 +4,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Union
 from urllib.parse import urlparse
 
+from field_constants import Fields
+
 ID_LENGTH = 18
 RETWEET_STRING = "RT @"
 
@@ -76,9 +78,9 @@ def get_field_value(entry: Dict, field_name: str) -> str:
 def generate_collection_id(entry: Dict) -> str:
     """Generate a new collection ID for an entry."""
     # Check required fields
-    collection_name = get_field_value(entry, "Name")
-    collection_description = get_field_value(entry, "Description")
-    collection_search_params = get_field_value(entry, "Search")
+    collection_name = get_field_value(entry, Fields.NAME)
+    collection_description = get_field_value(entry, Fields.DESCRIPTION)
+    collection_search_params = get_field_value(entry, Fields.SEARCH)
 
     if not collection_name or not collection_description or not collection_search_params:
         raise ValueError("Collection missing name, description, or search params.")
@@ -106,16 +108,16 @@ def update_entry_tweets(airtable, entry: Dict, og_tweets: List[str], new_tweets=
 
         if sorted(og_tweets) != sorted(all_tweets):
             tweets_string = ",".join(all_tweets)
-            airtable.update_page(entry["id"], {"Tweets": tweets_string})
-            print("Updated tweets for:", get_field_value(entry, "Description"))
+            airtable.update_page(entry["id"], {Fields.TWEETS: tweets_string})
+            print("Updated tweets for:", get_field_value(entry, Fields.DESCRIPTION))
 
 
 def update_entry_collection_metadata(airtable, entry: Dict, collection_id: str,
                                      collection_url: str) -> None:
     """Update collection metadata fields."""
     airtable.update_page(entry["id"], {
-        "ID": collection_id,
-        "URL": collection_url
+        Fields.ID: collection_id,
+        Fields.URL: collection_url
     })
 
 
@@ -126,7 +128,7 @@ def get_entry(airtable, collection_id: str) -> Union[Dict, None]:
         (
             entry
             for entry in entries
-            if get_field_value(entry, "ID") == collection_id
+            if get_field_value(entry, Fields.ID) == collection_id
         ),
         None,
     )
@@ -136,6 +138,6 @@ def get_entry_tweets(entry: Dict) -> List[str]:
     """Get list of tweet IDs from an entry."""
     return [
         tweet.strip()
-        for tweet in get_field_value(entry, "Tweets").split(",")
+        for tweet in get_field_value(entry, Fields.TWEETS).split(",")
         if tweet.strip()
     ]

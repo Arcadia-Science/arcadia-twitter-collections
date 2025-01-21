@@ -1,5 +1,7 @@
 from dotenv import load_dotenv
 import os
+from field_constants import Fields
+
 
 from airtable import AirtableAPI
 from utils import (
@@ -13,7 +15,7 @@ load_dotenv()
 COLLECTION_URL_PREFIX = os.getenv("COLLECTION_URL_PREFIX")
 AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
 AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
-AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME")
+AIRTABLE_TABLE_ID = os.getenv("AIRTABLE_TABLE_ID")
 
 
 def main():
@@ -24,12 +26,12 @@ def main():
     airtable = AirtableAPI(
         api_key=AIRTABLE_API_KEY,
         base_id=AIRTABLE_BASE_ID,
-        table_name=AIRTABLE_TABLE_NAME
+        table_name=AIRTABLE_TABLE_ID
     )
 
     entries = airtable.get_database_entries()
     for entry in entries:
-        collection_id = get_field_value(entry, "ID")
+        collection_id = get_field_value(entry, Fields.ID)
         if not collection_id:
             try:
                 new_id = generate_collection_id(entry)

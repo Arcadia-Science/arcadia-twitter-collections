@@ -24,7 +24,7 @@ jobs:
       - name: Execute script
         env:
           COLLECTION_URL_PREFIX: ${{ secrets.COLLECTION_URL_PREFIX }}
-          AIRTABLE_TABLE_NAME: ${{ secrets.AIRTABLE_TABLE_NAME }}
+          AIRTABLE_TABLE_ID: ${{ secrets.AIRTABLE_TABLE_ID }}
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
         run: python src/create_collections.py

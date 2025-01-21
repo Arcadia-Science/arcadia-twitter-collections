@@ -1,6 +1,5 @@
-import os
-import sys
 from unittest.mock import Mock
+from src.field_constants import Fields
 
 
 def test_get_quote_tweets(mock_apis):
@@ -34,7 +33,7 @@ def test_get_quote_tweets(mock_apis):
     assert len(update_calls) > 0
     actual_call = update_calls[0]
     actual_id = actual_call[0][0]
-    actual_tweets = set(actual_call[0][1]['Tweets'].split(','))
+    actual_tweets = set(actual_call[0][1][Fields.TWEETS].split(','))
     expected_tweets = {
         '1734567890123456789',  # Original tweets
         '1734567890123456790',
@@ -69,7 +68,7 @@ def test_get_quote_tweets_error_handling(mock_apis):
     assert len(update_calls) > 0
     actual_call = update_calls[0]
     actual_id = actual_call[0][0]
-    actual_tweets = set(actual_call[0][1]['Tweets'].split(','))
+    actual_tweets = set(actual_call[0][1][Fields.TWEETS].split(','))
     expected_tweets = {
         '1734567890123456789',  # Original tweets
         '1734567890123456790',

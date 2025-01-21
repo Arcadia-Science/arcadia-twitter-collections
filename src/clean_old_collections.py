@@ -1,4 +1,5 @@
 import os
+from field_constants import Fields
 
 from dotenv import load_dotenv
 
@@ -11,7 +12,7 @@ load_dotenv()
 ENVIRONMENT = os.getenv("ENVIRONMENT")
 AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
 AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
-AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME")
+AIRTABLE_TABLE_ID = os.getenv("AIRTABLE_TABLE_ID")
 TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
 
 
@@ -24,20 +25,20 @@ def main():
     airtable = AirtableAPI(
         api_key=AIRTABLE_API_KEY,
         base_id=AIRTABLE_BASE_ID,
-        table_name=AIRTABLE_TABLE_NAME
+        table_name=AIRTABLE_TABLE_ID
     )
 
     # Get all entries
     entries = airtable.get_database_entries()
     for entry in entries:
-        collection_id = get_field_value(entry, "ID")
+        collection_id = get_field_value(entry, Fields.ID)
         if not collection_id:
             continue
 
         # Get current tweets
         entry_tweets = [
             tweet.strip()
-            for tweet in get_field_value(entry, "Tweets").split(",")
+            for tweet in get_field_value(entry, Fields.TWEETS).split(",")
             if tweet.strip()
         ]
 
@@ -63,7 +64,7 @@ def main():
                 # Update the entry with cleaned tweet list
                 airtable.update_page(
                     entry["id"],
-                    {"Tweets": ",".join(cleaned_tweets)}
+                    {Fields.TWEETS: ",".join(cleaned_tweets)}
                 )
 
         except Exception as e:

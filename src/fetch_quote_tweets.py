@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 import os
 import random
+from field_constants import Fields
+
 
 from airtable import AirtableAPI
 from twitter import TwitterAPI
@@ -17,7 +19,7 @@ load_dotenv()
 ENVIRONMENT = os.getenv("ENVIRONMENT")
 AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
 AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
-AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME")
+AIRTABLE_TABLE_ID = os.getenv("AIRTABLE_TABLE_ID")
 TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
 
 
@@ -62,25 +64,25 @@ def main():
     airtable = AirtableAPI(
         api_key=AIRTABLE_API_KEY,
         base_id=AIRTABLE_BASE_ID,
-        table_name=AIRTABLE_TABLE_NAME
+        table_name=AIRTABLE_TABLE_ID
     )
 
     # Get all entries and calculate their priorities
     entries = airtable.get_database_entries()
     entries_with_priority = [
-        (entry, calculate_priority(get_field_value(entry, "Created date"))) for entry in entries
+        (entry, calculate_priority(get_field_value(entry, Fields.CREATED_DATE))) for entry in entries
     ]
     entries_with_priority.sort(key=lambda x: x[1], reverse=True)
 
     # Process entries based on priority
     for entry, priority in entries_with_priority:
-        collection_id = get_field_value(entry, "ID")
+        collection_id = get_field_value(entry, Fields.ID)
         if collection_id:
             # Skip based on priority (newer entries have higher chance of being processed)
             if random.random() > priority:
                 continue
 
-            print(f"Fetching quote tweets for: {get_field_value(entry, "Description")} (priority: {priority:.2f})")
+            print(f"Fetching quote tweets for: {get_field_value(entry, Fields.DESCRIPTION)} (priority: {priority:.2f})")
             get_quote_tweets(twitter, airtable, collection_id)
 
 
