@@ -22,7 +22,13 @@ jobs:
       - name: Execute script
         env:
           ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
-          NOTION_API_TOKEN: ${{ secrets.NOTION_API_TOKEN }}
-          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          AIRTABLE_TABLE_ID: ${{ secrets.AIRTABLE_TABLE_ID }}
+          SEARCH: ${{ secrets.SEARCH }}
+          CREATED_DATE: ${{ secrets.CREATED_DATE }}
+          ID: ${{ secrets.ID }}
+          DESCRIPTION: ${{ secrets.DESCRIPTION }}
+          TWEETS: ${{ secrets.TWEETS }}
         run: python src/fetch_tweets.py

@@ -1,5 +1,7 @@
 urllib3==2.1.0
-notion-client==2.2.1
 python-dotenv==1.0.0
 requests-cache==1.2.0
 tweepy==4.14.0
+
+pyairtable==3.0.1
+pytest==8.3.4

@@ -1,8 +1,10 @@
-name: Create Twitter collections cron job
+name: Create Twitter collections dispatch
 
 on:
-  schedule:
-    - cron: "*/5 * * * *" # Run it every 5 minutes
+  repository_dispatch:
+    # This will automatically trigger through Airtable when we need a new collection
+    types: [create_new_twitter_collection]
+    # Keeping this here in case we want to manually run it out of order
   workflow_dispatch:
 
 jobs:
@@ -22,6 +24,12 @@ jobs:
       - name: Execute script
         env:
           COLLECTION_URL_PREFIX: ${{ secrets.COLLECTION_URL_PREFIX }}
-          NOTION_API_TOKEN: ${{ secrets.NOTION_API_TOKEN }}
-          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          AIRTABLE_TABLE_ID: ${{ secrets.AIRTABLE_TABLE_ID }}
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          ID: ${{ secrets.ID }}
+          NAME: ${{ secrets.NAME }}
+          DESCRIPTION: ${{ secrets.DESCRIPTION }}
+          SEARCH: ${{ secrets.SEARCH }}
+          URL: ${{ secrets.URL }}
         run: python src/create_collections.py
