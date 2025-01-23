@@ -27,9 +27,9 @@ jobs:
           AIRTABLE_TABLE_ID: ${{ secrets.AIRTABLE_TABLE_ID }}
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
-          ID: ${{ secrets.ID }}
-          NAME: ${{ secrets.NAME }}
-          DESCRIPTION: ${{ secrets.DESCRIPTION }}
-          SEARCH: ${{ secrets.SEARCH }}
-          URL: ${{ secrets.URL }}
+          AIRTABLE_FIELD_ID_COLLECTION_ID: ${{ secrets.AIRTABLE_FIELD_ID_COLLECTION_ID }}
+          AIRTABLE_FIELD_ID_NAME: ${{ secrets.AIRTABLE_FIELD_ID_NAME }}
+          AIRTABLE_FIELD_ID_DESCRIPTION: ${{ secrets.AIRTABLE_FIELD_ID_DESCRIPTION}}
+          AIRTABLE_FIELD_ID_SEARCH: ${{ secrets.AIRTABLE_FIELD_ID_SEARCH }}
+          AIRTABLE_FIELD_ID_URL: ${{ secrets.AIRTABLE_FIELD_ID_URL }}
         run: python src/create_collections.py

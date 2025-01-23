@@ -1,4 +1,4 @@
-from src.field_constants import Fields
+from field_constants import Fields
 
 
 def test_get_tweets_for_entry(mock_apis):
