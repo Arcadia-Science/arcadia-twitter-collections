@@ -26,8 +26,8 @@ jobs:
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
           AIRTABLE_TABLE_ID: ${{ secrets.AIRTABLE_TABLE_ID }}
-          CREATED_DATE: ${{ secrets.CREATED_DATE }}
-          ID: ${{ secrets.ID }}
-          DESCRIPTION: ${{ secrets.DESCRIPTION }}
-          TWEETS: ${{ secrets.TWEETS }}
+          AIRTABLE_FIELD_ID_COLLECTION_ID: ${{ secrets.AIRTABLE_FIELD_ID_COLLECTION_ID }}
+          AIRTABLE_FIELD_ID_DESCRIPTION: ${{ secrets.AIRTABLE_FIELD_ID_DESCRIPTION }}
+          AIRTABLE_FIELD_ID_TWEETS: ${{ secrets.AIRTABLE_FIELD_ID_TWEETS }}
+          AIRTABLE_FIELD_ID_CREATED_DATE: ${{ secrets.AIRTABLE_FIELD_ID_CREATED_DATE }}
         run: python src/fetch_quote_tweets.py

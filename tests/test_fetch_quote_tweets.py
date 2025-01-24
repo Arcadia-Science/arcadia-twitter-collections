@@ -1,5 +1,5 @@
 from unittest.mock import Mock
-from src.field_constants import Fields
+from field_constants import Fields
 
 
 def test_get_quote_tweets(mock_apis):
