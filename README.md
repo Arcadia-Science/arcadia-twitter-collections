@@ -2,6 +2,11 @@
 
 ## Update as of January 2025
 
+The overall flow of Twitter collections for Arcadia pubs is as follows:
+1. When a pub is marked as ready to release in Airtable, an Airtable automation creates a new collection with the required metadata in the Twitter collections table. Then, `create_collections.yml` dispatch is triggered and populates the Twitter collection URL.
+2. `fetch_tweets.yml` and `fetch_quote_tweets.yml` run on a cron as described in this README and store new tweet IDs in the Twitter collections table
+3. The URL to the collection is linked to the pub record and is automatically pulled in by PubPub Platform when creating new pubs
+
 - We have transitioned to using Airtable to hold Twitter collections rather than Notion:
   - As part of Arcadia's move to PubPub Platform, much of each pub's metadata will be stored in Airtable to make sure that our internal systems are not duplicating information on PubPub, reducing errors. Generating and storing Twitter collections on Airtable allows it to automatically pull into PubPub.
   - Airtable's structure is simpler than Notion's, allowing some streamlining of the scripts in this repo.
